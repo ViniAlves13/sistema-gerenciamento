@@ -11,7 +11,7 @@ const ProdutosTab = ({ userRole }) => {
 
   const fetchProdutos = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/products', { 
+      const response = await axios.get('https://gestaopro-api-ovgf.onrender.com/api/products', { 
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
       });
       setProdutos(response.data);
@@ -25,9 +25,9 @@ const ProdutosTab = ({ userRole }) => {
     try {
       const payload = { name: nomeProd, description: descricaoProd, price: Number(precoProd), stock: Number(estoqueProd) };
       if (editandoProdId) {
-        await axios.put(`http://localhost:3000/api/products/${editandoProdId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/products/${editandoProdId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       } else {
-        await axios.post('http://localhost:3000/api/products', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        await axios.post('https://gestaopro-api-ovgf.onrender.com/api/products', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       }
       limparFormProd(); fetchProdutos();
     } catch (error) { alert('Erro ao salvar produto.'); }
@@ -43,7 +43,7 @@ const ProdutosTab = ({ userRole }) => {
   const handleDeleteProduct = async (id) => {
     if (!window.confirm('Excluir este produto do sistema?')) return;
     try {
-      await axios.delete(`http://localhost:3000/api/products/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      await axios.delete(`https://gestaopro-api-ovgf.onrender.com/api/products/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       fetchProdutos(); 
     } catch (error) { alert('Erro ao deletar.'); }
   };

@@ -23,8 +23,8 @@ const ClientesTab = ({ userRole }) => {
     try {
       const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
       const [resClientes, resProdutos] = await Promise.all([
-        axios.get('http://localhost:3000/api/clients', { headers }),
-        axios.get('http://localhost:3000/api/products', { headers })
+        axios.get('https://gestaopro-api-ovgf.onrender.com/api/clients', { headers }),
+        axios.get('https://gestaopro-api-ovgf.onrender.com/api/products', { headers })
       ]);
       setClientes(resClientes.data);
       setProdutos(resProdutos.data);
@@ -121,9 +121,9 @@ const ClientesTab = ({ userRole }) => {
 
       if (editandoId) {
         // Se estiver editando, ele SOMA o valor atual com o que já tinha (opcional, aqui estamos substituindo para simplificar)
-        await axios.put(`http://localhost:3000/api/clients/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/clients/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       } else {
-        await axios.post('http://localhost:3000/api/clients', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        await axios.post('https://gestaopro-api-ovgf.onrender.com/api/clients', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       }
       
       limparForm(); fetchData();
@@ -146,7 +146,7 @@ const ClientesTab = ({ userRole }) => {
   const handleDelete = async (id) => {
     if (!window.confirm('Excluir este cliente da base de dados?')) return;
     try {
-      await axios.delete(`http://localhost:3000/api/clients/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      await axios.delete(`https://gestaopro-api-ovgf.onrender.com/api/clients/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       fetchData(); 
     } catch (error) { alert('Erro ao deletar.'); }
   };

@@ -17,7 +17,7 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const response = await axios.post('http://localhost:3000/api/users/login', {
+        const response = await axios.post('https://gestaopro-api-ovgf.onrender.com/api/users/login', {
           email,
           password: senha
         });
@@ -25,7 +25,7 @@ const Auth = () => {
         localStorage.setItem('token', response.data.token);
         navigate('/dashboard');
       } else {
-        await axios.post('http://localhost:3000/api/users/register', {
+        await axios.post('https://gestaopro-api-ovgf.onrender.com/api/users/register', {
           name: nome,
           email,
           password: senha,

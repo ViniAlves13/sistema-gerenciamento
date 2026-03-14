@@ -11,7 +11,7 @@ const UsuariosTab = ({ loggedUserId }) => {
 
   const fetchUsuarios = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/users', { 
+      const response = await axios.get('https://gestaopro-api-ovgf.onrender.com/api/users', { 
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
       });
       setUsuarios(response.data);
@@ -27,11 +27,11 @@ const UsuariosTab = ({ loggedUserId }) => {
       if (senha) payload.password = senha; // Só envia a senha se foi digitada
 
       if (editandoId) {
-        await axios.put(`http://localhost:3000/api/users/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/users/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       } else {
         // Exige senha para criar novo usuário
         if (!senha) return alert('A senha é obrigatória para novos usuários.');
-        await axios.post('http://localhost:3000/api/users', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        await axios.post('https://gestaopro-api-ovgf.onrender.com/api/users', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       }
       limparForm(); fetchUsuarios();
     } catch (error) { alert(error.response?.data?.error || 'Erro ao salvar usuário.'); }
@@ -50,7 +50,7 @@ const UsuariosTab = ({ loggedUserId }) => {
     if (id === loggedUserId) return alert('Você não pode excluir sua própria conta!');
     if (!window.confirm('Atenção: Tem certeza que deseja excluir este acesso?')) return;
     try {
-      await axios.delete(`http://localhost:3000/api/users/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      await axios.delete(`https://gestaopro-api-ovgf.onrender.com/api/users/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       fetchUsuarios(); 
     } catch (error) { alert('Erro ao deletar.'); }
   };

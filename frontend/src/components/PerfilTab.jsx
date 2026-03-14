@@ -13,7 +13,7 @@ const PerfilTab = () => {
   useEffect(() => {
     const fetchPerfil = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/users/profile', {
+        const response = await axios.get('https://gestaopro-api-ovgf.onrender.com/api/users/profile', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setNome(response.data.name);
@@ -34,7 +34,7 @@ const PerfilTab = () => {
       const payload = { name: nome, email };
       if (senha) payload.password = senha; // Só manda a senha se o usuário digitou uma nova
 
-      await axios.put('http://localhost:3000/api/users/profile', payload, {
+      await axios.put('https://gestaopro-api-ovgf.onrender.com/api/users/profile', payload, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
