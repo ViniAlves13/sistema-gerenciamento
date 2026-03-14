@@ -3,119 +3,326 @@ import axios from 'axios';
 
 const ClientesTab = ({ userRole }) => {
   const [clientes, setClientes] = useState([]);
-  const [nomeCli, setNomeCli] = useState('');
-  const [emailCli, setEmailCli] = useState('');
-  const [telefoneCli, setTelefoneCli] = useState('');
-  const [enderecoSalvo, setEnderecoSalvo] = useState('');
-  const [cepCli, setCepCli] = useState('');
-  const [logradouroCli, setLogradouroCli] = useState('');
-  const [numeroCli, setNumeroCli] = useState('');
-  const [complementoCli, setComplementoCli] = useState('');
-  const [bairroCli, setBairroCli] = useState('');
-  const [cidadeCli, setCidadeCli] = useState('');
-  const [estadoCli, setEstadoCli] = useState('');
-  const [editandoCliId, setEditandoCliId] = useState(null);
+  const [produtos, setProdutos] = useState([]); // Guarda os produtos do banco
+  
+  // Estados do formulário de Cliente
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [cep, setCep] = useState('');
+  const [endereco, setEndereco] = useState('');
+  const [editandoId, setEditandoId] = useState(null);
 
-  const fetchClientes = async () => {
+  // Estados do Carrinho de Compras
+  const [produtoSelecionado, setProdutoSelecionado] = useState('');
+  const [quantidadeCompra, setQuantidadeCompra] = useState(1);
+  const [carrinho, setCarrinho] = useState([]);
+
+  // Busca Clientes e Produtos ao carregar a página
+  const fetchData = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/clients', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-      setClientes(response.data);
-    } catch (error) { console.error(error); }
+      const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+      const [resClientes, resProdutos] = await Promise.all([
+        axios.get('http://localhost:3000/api/clients', { headers }),
+        axios.get('http://localhost:3000/api/products', { headers })
+      ]);
+      setClientes(resClientes.data);
+      setProdutos(resProdutos.data);
+    } catch (error) { console.error("Erro ao buscar dados", error); }
   };
 
-  useEffect(() => { fetchClientes(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
+  // ==========================================
+  // REGRAS DE NEGÓCIO: MÁSCARAS E APIs
+  // ==========================================
+  
+  // Máscara de Telefone: (99) 99999-9999
   const handleTelefoneChange = (e) => {
-    let v = e.target.value.replace(/\D/g, ''); if (v.length > 11) v = v.slice(0, 11);
-    if (v.length > 2) v = `(${v.slice(0, 2)}) ${v.slice(2)}`; if (v.length > 10) v = `${v.slice(0, 10)}-${v.slice(10)}`; setTelefoneCli(v);
+    let value = e.target.value.replace(/\D/g, ''); // Tira tudo que não é número
+    value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+    value = value.replace(/(\d)(\d{4})$/, '$1-$2');
+    setTelefone(value.substring(0, 15));
   };
 
-  const handleCepChange = async (e) => {
-    let v = e.target.value.replace(/\D/g, ''); if (v.length > 8) v = v.slice(0, 8); setCepCli(v);
-    if (v.length < 8) { setLogradouroCli(''); setBairroCli(''); setCidadeCli(''); setEstadoCli(''); }
-    if (v.length === 8) {
+  // Máscara de CEP e Busca de Endereço via API
+  const handleCepChange = (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+    setCep(value.substring(0, 9));
+  };
+
+  const buscarEnderecoPorCep = async () => {
+    const cepLimpo = cep.replace(/\D/g, '');
+    if (cepLimpo.length === 8) {
       try {
-        const response = await axios.get(`https://viacep.com.br/ws/${v}/json/`);
-        if (!response.data.erro) { setLogradouroCli(response.data.logradouro); setBairroCli(response.data.bairro); setCidadeCli(response.data.localidade); setEstadoCli(response.data.uf); }
-        else { alert('CEP não existe!'); setCepCli(''); }
-      } catch (error) { alert('Erro no CEP.'); }
+        const response = await axios.get(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+        if (!response.data.erro) {
+          // Preenche o endereço sozinho!
+          setEndereco(`${response.data.logradouro}, Bairro ${response.data.bairro}, ${response.data.localidade} - ${response.data.uf}`);
+        } else {
+          alert("CEP não encontrado!");
+        }
+      } catch (error) { console.error("Erro na API ViaCEP"); }
     }
   };
 
-  const handleSubmitCliente = async (e) => {
+  // ==========================================
+  // REGRAS DE NEGÓCIO: CARRINHO DE COMPRAS
+  // ==========================================
+
+  const adicionarAoCarrinho = () => {
+    if (!produtoSelecionado) return alert('Selecione um produto.');
+    if (quantidadeCompra <= 0) return alert('A quantidade deve ser maior que zero.');
+
+    const produtoDb = produtos.find(p => p._id === produtoSelecionado);
+    
+    // Regra: Não pode comprar mais do que tem no estoque!
+    if (quantidadeCompra > produtoDb.stock) {
+      return alert(`Estoque insuficiente! Temos apenas ${produtoDb.stock} unidades de ${produtoDb.name}.`);
+    }
+
+    const novoItem = {
+      productId: produtoDb._id,
+      productName: produtoDb.name,
+      price: produtoDb.price,
+      quantity: Number(quantidadeCompra),
+      subtotal: produtoDb.price * Number(quantidadeCompra)
+    };
+
+    setCarrinho([...carrinho, novoItem]);
+    setProdutoSelecionado(''); // Reseta o select
+    setQuantidadeCompra(1);
+  };
+
+  const removerDoCarrinho = (indexParaRemover) => {
+    setCarrinho(carrinho.filter((_, index) => index !== indexParaRemover));
+  };
+
+  // Calcula o total da compra na hora
+  const totalGasto = carrinho.reduce((acc, item) => acc + item.subtotal, 0);
+
+  // ==========================================
+  // SALVAR NO BANCO
+  // ==========================================
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      let enderecoFinal = enderecoSalvo;
-      if (!enderecoSalvo) {
-        if (!cepCli || !logradouroCli || !numeroCli) return alert('Preencha o CEP e o Número.');
-        enderecoFinal = `${logradouroCli}, ${numeroCli}${complementoCli ? ` - ${complementoCli}` : ''}, ${bairroCli}, ${cidadeCli} - ${estadoCli}, CEP: ${cepCli}`;
+      const payload = { 
+        name: nome, 
+        email, 
+        phone: telefone, 
+        cep,
+        address: endereco,
+        purchases: carrinho,
+        totalSpent: totalGasto
+      };
+
+      if (editandoId) {
+        // Se estiver editando, ele SOMA o valor atual com o que já tinha (opcional, aqui estamos substituindo para simplificar)
+        await axios.put(`http://localhost:3000/api/clients/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      } else {
+        await axios.post('http://localhost:3000/api/clients', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       }
-      const payload = { name: nomeCli, email: emailCli, phone: telefoneCli, address: enderecoFinal };
-      if (editandoCliId) { await axios.put(`http://localhost:3000/api/clients/${editandoCliId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }); } 
-      else { await axios.post('http://localhost:3000/api/clients', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }); }
-      limparFormCli(); fetchClientes();
+      
+      limparForm(); fetchData();
+      alert('Cliente e compra registrados com sucesso!');
     } catch (error) { alert('Erro ao salvar cliente.'); }
   };
 
-  const handleEditCliClick = (c) => { setNomeCli(c.name); setEmailCli(c.email); setTelefoneCli(c.phone); setEnderecoSalvo(c.address || ''); setCepCli(''); setLogradouroCli(''); setNumeroCli(''); setComplementoCli(''); setBairroCli(''); setCidadeCli(''); setEstadoCli(''); setEditandoCliId(c._id); };
-  const limparFormCli = () => { setNomeCli(''); setEmailCli(''); setTelefoneCli(''); setEnderecoSalvo(''); setCepCli(''); setLogradouroCli(''); setNumeroCli(''); setComplementoCli(''); setBairroCli(''); setCidadeCli(''); setEstadoCli(''); setEditandoCliId(null); };
-
-  const handleDeleteCliente = async (id) => {
-    if (!window.confirm('Deletar cliente?')) return;
-    try { await axios.delete(`http://localhost:3000/api/clients/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }); fetchClientes(); } catch (error) { alert('Erro ao deletar cliente.'); }
+  const handleEditClick = (cliente) => {
+    setNome(cliente.name); setEmail(cliente.email);
+    setTelefone(cliente.phone || ''); setCep(cliente.cep || ''); setEndereco(cliente.address || ''); 
+    setCarrinho(cliente.purchases || []); // Carrega as compras antigas se for editar
+    setEditandoId(cliente._id);
   };
 
+  const limparForm = () => { 
+    setNome(''); setEmail(''); setTelefone(''); setCep(''); setEndereco(''); 
+    setCarrinho([]); setEditandoId(null); 
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Excluir este cliente da base de dados?')) return;
+    try {
+      await axios.delete(`http://localhost:3000/api/clients/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      fetchData(); 
+    } catch (error) { alert('Erro ao deletar.'); }
+  };
+
+  // Para achar qual o estoque máximo do produto selecionado no dropdown
+  const estoqueMaximoAtual = produtoSelecionado ? produtos.find(p => p._id === produtoSelecionado)?.stock : 1;
+
   return (
-    <div>
-      <h2>Gerenciamento de Clientes</h2>
+    <div className="fade-in">
+      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-2">
+        <h3 className="fw-bold text-dark mb-0" style={{ color: '#1e2b3c' }}>👥 Carteira de Clientes e Vendas</h3>
+        <span className="badge bg-success rounded-pill px-3 py-2 shadow-sm">
+          {clientes.length} Registrados
+        </span>
+      </div>
+
       {(userRole === 'super_user' || userRole === 'adm') && (
-        <form onSubmit={handleSubmitCliente} style={{ ...formStyle, gap: '15px' }}>
-          <div style={{ width: '100%', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '5px', fontWeight: 'bold' }}>Dados Pessoais</div>
-          <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%' }}><label style={labelStyle}>Nome Completo</label><input type="text" value={nomeCli} onChange={e => setNomeCli(e.target.value)} required style={inputStyle} /></div>
-          <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 30%' }}><label style={labelStyle}>E-mail</label><input type="email" value={emailCli} onChange={e => setEmailCli(e.target.value)} required style={inputStyle} /></div>
-          <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 20%' }}><label style={labelStyle}>Telefone</label><input type="text" placeholder="(XX) XXXXX-XXXX" value={telefoneCli} onChange={handleTelefoneChange} required style={inputStyle} /></div>
-          <div style={{ width: '100%', borderBottom: '1px solid #eee', paddingBottom: '10px', marginTop: '10px', marginBottom: '5px', fontWeight: 'bold' }}>Endereço</div>
-          {enderecoSalvo ? (
-            <div style={{ width: '100%', padding: '15px', backgroundColor: '#fdfefe', border: '1px solid #e5e8e8', borderRadius: '5px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style={{ fontSize: '14px', color: '#555' }}><strong>Registrado:</strong> {enderecoSalvo}</span><button type="button" onClick={() => setEnderecoSalvo('')} style={{ padding: '6px 12px', backgroundColor: '#f39c12', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}>Mudar Endereço</button></div>
-          ) : (
-            <>
-              <div style={{ display: 'flex', flexDirection: 'column', width: '120px' }}><label style={labelStyle}>CEP</label><input type="text" placeholder="Apenas números" value={cepCli} onChange={handleCepChange} style={inputStyle} /></div>
-              <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 40%' }}><label style={labelStyle}>Logradouro</label><input type="text" value={logradouroCli} onChange={e => setLogradouroCli(e.target.value)} style={inputStyle} /></div>
-              <div style={{ display: 'flex', flexDirection: 'column', width: '80px' }}><label style={labelStyle}>Número</label><input type="text" value={numeroCli} onChange={e => setNumeroCli(e.target.value)} style={inputStyle} /></div>
-              <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 20%' }}><label style={labelStyle}>Complemento</label><input type="text" value={complementoCli} onChange={e => setComplementoCli(e.target.value)} style={inputStyle} /></div>
-              <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 25%' }}><label style={labelStyle}>Bairro</label><input type="text" value={bairroCli} onChange={e => setBairroCli(e.target.value)} style={inputStyle} disabled={!!cepCli && bairroCli} /></div>
-              <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 25%' }}><label style={labelStyle}>Cidade</label><input type="text" value={cidadeCli} onChange={e => setCidadeCli(e.target.value)} style={inputStyle} disabled={!!cepCli && cidadeCli} /></div>
-              <div style={{ display: 'flex', flexDirection: 'column', width: '60px' }}><label style={labelStyle}>UF</label><input type="text" value={estadoCli} onChange={e => setEstadoCli(e.target.value)} style={inputStyle} disabled={!!cepCli && estadoCli} /></div>
-            </>
-          )}
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-            {editandoCliId && <button type="button" onClick={limparFormCli} style={{ ...actionBtnStyle, backgroundColor: '#95a5a6' }}>Cancelar</button>}
-            <button type="submit" style={{ ...actionBtnStyle, backgroundColor: editandoCliId ? '#2980b9' : '#2ecc71' }}>{editandoCliId ? 'Salvar Alterações' : '+ Adicionar Cliente'}</button>
+        <div className="card bg-white border-0 shadow-sm mb-4 rounded-3" style={{ borderTop: '4px solid #198754 !important' }}>
+          <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+            <h5 className="card-title text-success fw-bold mb-0">
+              {editandoId ? '✏️ Editar Cliente e Adicionar Compras' : '➕ Novo Cliente e Registro de Compra'}
+            </h5>
           </div>
-        </form>
-      )}
-      <table style={tableStyle}>
-        <thead><tr style={{ backgroundColor: '#ecf0f1', textAlign: 'left' }}><th style={thStyle}>Nome</th><th style={thStyle}>E-mail</th><th style={thStyle}>Telefone</th><th style={thStyle}>Endereço Completo</th>{(userRole === 'super_user' || userRole === 'adm') && <th style={thStyle}>Ações</th>}</tr></thead>
-        <tbody>
-          {clientes.map(cliente => (
-            <tr key={cliente._id} style={{ borderBottom: '1px solid #eee' }}><td style={tdStyle}>{cliente.name}</td><td style={tdStyle}>{cliente.email}</td><td style={tdStyle}>{cliente.phone}</td><td style={tdStyle}><small>{cliente.address}</small></td>
-              {(userRole === 'super_user' || userRole === 'adm') && (
-                <td style={tdStyle}><button onClick={() => handleEditCliClick(cliente)} style={{ ...actionBtnStyle, backgroundColor: '#3498db', marginRight: '5px' }}>Editar</button><button onClick={() => handleDeleteCliente(cliente._id)} style={{ ...actionBtnStyle, backgroundColor: '#e74c3c' }}>Deletar</button></td>
+          <div className="card-body p-4">
+            
+            <form onSubmit={handleSubmit}>
+              
+              {/* SESSÃO 1: DADOS DO CLIENTE */}
+              <h6 className="fw-bold text-secondary mb-3 mt-2 border-bottom pb-2">1. Dados Pessoais</h6>
+              <div className="row g-3 mb-4">
+                <div className="col-12 col-md-4">
+                  <label className="form-label fw-medium text-secondary">Nome Completo</label>
+                  <input type="text" className="form-control bg-light" value={nome} onChange={e => setNome(e.target.value)} required />
+                </div>
+                <div className="col-12 col-md-4">
+                  <label className="form-label fw-medium text-secondary">E-mail</label>
+                  <input type="email" className="form-control bg-light" value={email} onChange={e => setEmail(e.target.value)} required />
+                </div>
+                <div className="col-12 col-md-4">
+                  <label className="form-label fw-medium text-secondary">WhatsApp / Celular</label>
+                  <input type="text" className="form-control bg-light" value={telefone} onChange={handleTelefoneChange} placeholder="(00) 00000-0000" />
+                </div>
+                
+                <div className="col-12 col-md-2">
+                  <label className="form-label fw-medium text-secondary">CEP (Busca Automática)</label>
+                  <input type="text" className="form-control bg-light border-primary" value={cep} onChange={handleCepChange} onBlur={buscarEnderecoPorCep} placeholder="00000-000" />
+                </div>
+                <div className="col-12 col-md-10">
+                  <label className="form-label fw-medium text-secondary">Endereço Completo</label>
+                  <input type="text" className="form-control bg-light" value={endereco} onChange={e => setEndereco(e.target.value)} placeholder="Preenchido automaticamente ao digitar o CEP..." />
+                </div>
+              </div>
+
+              {/* SESSÃO 2: CARRINHO DE COMPRAS (O SEU NOVO RECURSO) */}
+              <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">2. Registro de Compras (Opcional)</h6>
+              <div className="row g-3 align-items-end p-3 rounded bg-light border border-secondary-subtle mb-3">
+                <div className="col-12 col-md-6">
+                  <label className="form-label fw-medium text-dark">Selecione o Produto (Do Estoque)</label>
+                  <select className="form-select border-secondary" value={produtoSelecionado} onChange={e => setProdutoSelecionado(e.target.value)}>
+                    <option value="">-- Escolha um produto --</option>
+                    {produtos.map(p => (
+                      <option key={p._id} value={p._id} disabled={p.stock === 0}>
+                        {p.name} (R$ {p.price}) - Estoque: {p.stock} {p.stock === 0 && '❌ Esgotado'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-6 col-md-3">
+                  <label className="form-label fw-medium text-dark">Quantidade</label>
+                  <input type="number" min="1" max={estoqueMaximoAtual} className="form-control border-secondary" value={quantidadeCompra} onChange={e => setQuantidadeCompra(e.target.value)} disabled={!produtoSelecionado} />
+                </div>
+                <div className="col-6 col-md-3">
+                  <button type="button" className="btn btn-primary w-100 fw-bold shadow-sm" onClick={adicionarAoCarrinho} disabled={!produtoSelecionado}>
+                    ➕ Adicionar à Compra
+                  </button>
+                </div>
+              </div>
+
+              {/* LISTA DE PRODUTOS ADICIONADOS */}
+              {carrinho.length > 0 && (
+                <div className="table-responsive mb-3">
+                  <table className="table table-sm table-bordered mb-0 bg-white">
+                    <thead className="table-light">
+                      <tr>
+                        <th>Produto Comprado</th>
+                        <th className="text-center">Qtd.</th>
+                        <th>Preço Un.</th>
+                        <th>Subtotal</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {carrinho.map((item, index) => (
+                        <tr key={index}>
+                          <td className="fw-medium text-dark">{item.productName}</td>
+                          <td className="text-center">{item.quantity}</td>
+                          <td>R$ {item.price.toFixed(2)}</td>
+                          <td className="fw-bold text-success">R$ {item.subtotal.toFixed(2)}</td>
+                          <td className="text-center">
+                            <button type="button" className="btn btn-sm btn-outline-danger py-0 px-2" onClick={() => removerDoCarrinho(index)}>X</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="table-success">
+                      <tr>
+                        <td colSpan="3" className="text-end fw-bold">TOTAL DA COMPRA:</td>
+                        <td colSpan="2" className="fw-bold fs-5 text-success">R$ {totalGasto.toFixed(2)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+              {/* BOTÕES DE SALVAR */}
+              <div className="col-12 d-flex gap-2 justify-content-md-end mt-4 pt-3 border-top">
+                {editandoId && (
+                  <button type="button" className="btn btn-outline-secondary shadow-sm" onClick={limparForm}>Cancelar Edição</button>
+                )}
+                <button type="submit" className={`btn shadow-sm fw-bold px-4 ${editandoId ? 'btn-warning text-dark' : 'btn-success'}`}>
+                  {editandoId ? 'Atualizar Registro' : 'Salvar Cliente e Compras'}
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* TABELA GERAL DE CLIENTES */}
+      <div className="card bg-white border-0 shadow-sm rounded-3 overflow-hidden" style={{ borderTop: '4px solid #6c757d !important' }}>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead style={{ backgroundColor: '#f8f9fa' }}>
+                <tr>
+                  <th className="px-4 py-3 text-secondary border-bottom">Cliente</th>
+                  <th className="px-4 py-3 text-secondary border-bottom">Contato</th>
+                  <th className="px-4 py-3 text-secondary border-bottom">Total Gasto na Loja</th>
+                  {(userRole === 'super_user' || userRole === 'adm') && <th className="px-4 py-3 text-secondary border-bottom text-end">Ações</th>}
+                </tr>
+              </thead>
+              <tbody className="border-top-0">
+                {clientes.length === 0 ? (
+                  <tr><td colSpan="4" className="text-center py-5 text-muted">Nenhum cliente registrado.</td></tr>
+                ) : (
+                  clientes.map(cliente => (
+                    <tr key={cliente._id}>
+                      <td className="px-4">
+                        <span className="fw-bold" style={{ color: '#2b3a4a' }}>{cliente.name}</span><br/>
+                        <small className="text-muted">{cliente.email}</small>
+                      </td>
+                      <td className="px-4 text-muted">{cliente.phone || '-'}</td>
+                      <td className="px-4">
+                        {cliente.totalSpent > 0 ? (
+                          <span className="badge bg-success shadow-sm fs-6">R$ {cliente.totalSpent.toFixed(2)}</span>
+                        ) : (
+                          <span className="text-muted fst-italic">Nenhuma compra</span>
+                        )}
+                      </td>
+                      {(userRole === 'super_user' || userRole === 'adm') && (
+                        <td className="px-4 text-end">
+                          <button onClick={() => handleEditClick(cliente)} className="btn btn-sm btn-outline-success me-1 fw-medium shadow-sm">Ver/Editar Compras</button>
+                          <button onClick={() => handleDelete(cliente._id)} className="btn btn-sm btn-outline-danger fw-medium shadow-sm">Excluir</button>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
-
-const inputStyle = { padding: '8px', border: '1px solid #ccc', borderRadius: '4px' };
-const formStyle = { backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-start' };
-const labelStyle = { fontSize: '13px', marginBottom: '5px', color: '#555', fontWeight: '500' };
-const actionBtnStyle = { padding: '8px 15px', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', height: '38px', fontWeight: 'bold' };
-const tableStyle = { width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' };
-const thStyle = { padding: '12px 15px', borderBottom: '2px solid #ddd' };
-const tdStyle = { padding: '12px 15px' };
 
 export default ClientesTab;

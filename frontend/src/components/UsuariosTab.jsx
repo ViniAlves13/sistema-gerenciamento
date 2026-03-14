@@ -3,90 +3,162 @@ import axios from 'axios';
 
 const UsuariosTab = ({ loggedUserId }) => {
   const [usuarios, setUsuarios] = useState([]);
-  const [nomeUsu, setNomeUsu] = useState('');
-  const [emailUsu, setEmailUsu] = useState('');
-  const [senhaUsu, setSenhaUsu] = useState('');
-  const [nivelUsu, setNivelUsu] = useState('usuario_comum');
-  const [editandoUsuId, setEditandoUsuId] = useState(null);
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [role, setRole] = useState('usuario_comum');
+  const [editandoId, setEditandoId] = useState(null);
 
   const fetchUsuarios = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/users', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      const response = await axios.get('http://localhost:3000/api/users', { 
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+      });
       setUsuarios(response.data);
     } catch (error) { console.error(error); }
   };
 
   useEffect(() => { fetchUsuarios(); }, []);
 
-  const handleSubmitUsuario = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = { name: nomeUsu, email: emailUsu, role: nivelUsu };
-      if (senhaUsu) payload.password = senhaUsu; 
+      const payload = { name: nome, email, role };
+      if (senha) payload.password = senha; // Só envia a senha se foi digitada
 
-      if (editandoUsuId) {
-        await axios.put(`http://localhost:3000/api/users/${editandoUsuId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      if (editandoId) {
+        await axios.put(`http://localhost:3000/api/users/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       } else {
-        if (!senhaUsu) return alert('Senha obrigatória para novo usuário.');
+        // Exige senha para criar novo usuário
+        if (!senha) return alert('A senha é obrigatória para novos usuários.');
         await axios.post('http://localhost:3000/api/users', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       }
-      limparFormUsu(); fetchUsuarios();
-    } catch (error) { alert(error.response?.data?.error || 'Erro ao salvar.'); }
+      limparForm(); fetchUsuarios();
+    } catch (error) { alert(error.response?.data?.error || 'Erro ao salvar usuário.'); }
   };
 
-  const handleEditUsuClick = (usu) => {
-    setNomeUsu(usu.name); setEmailUsu(usu.email); setNivelUsu(usu.role); setSenhaUsu(''); setEditandoUsuId(usu._id);
+  const handleEditClick = (user) => {
+    setNome(user.name); setEmail(user.email); setRole(user.role);
+    setSenha(''); // Deixa a senha em branco por segurança
+    setEditandoId(user._id);
   };
 
-  const limparFormUsu = () => { setNomeUsu(''); setEmailUsu(''); setSenhaUsu(''); setNivelUsu('usuario_comum'); setEditandoUsuId(null); };
+  const limparForm = () => { setNome(''); setEmail(''); setSenha(''); setRole('usuario_comum'); setEditandoId(null); };
+
+  // Bloqueia a exclusão do próprio usuário logado
+  const handleDelete = async (id) => {
+    if (id === loggedUserId) return alert('Você não pode excluir sua própria conta!');
+    if (!window.confirm('Atenção: Tem certeza que deseja excluir este acesso?')) return;
+    try {
+      await axios.delete(`http://localhost:3000/api/users/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      fetchUsuarios(); 
+    } catch (error) { alert('Erro ao deletar.'); }
+  };
+
+  // Função para formatar a cor do crachá (badge) dependendo do nível
+  const getRoleBadge = (userRole) => {
+    switch(userRole) {
+      case 'super_user': return <span className="badge bg-danger">Super User</span>;
+      case 'adm': return <span className="badge bg-warning text-dark">Administrador</span>;
+      default: return <span className="badge bg-secondary">Comum</span>;
+    }
+  };
 
   return (
-    <div>
-      <h2>Gerenciamento de Usuários do Sistema</h2>
-      <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#e8f8f5', borderLeft: '5px solid #1abc9c', color: '#16a085' }}>
-        <strong>Atenção:</strong> Você está na área de segurança máxima.
+    <div className="fade-in">
+      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-2">
+        <h3 className="fw-bold text-dark mb-0" style={{ color: '#1e2b3c' }}>🛡️ Controle de Acessos</h3>
+        <span className="badge bg-purple rounded-pill px-3 py-2 shadow-sm" style={{ backgroundColor: '#6f42c1' }}>
+          {usuarios.length} Contas
+        </span>
       </div>
 
-      <form onSubmit={handleSubmitUsuario} style={formStyle}>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 25%' }}><label style={labelStyle}>Nome Completo</label><input type="text" value={nomeUsu} onChange={e => setNomeUsu(e.target.value)} required style={inputStyle} /></div>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 25%' }}><label style={labelStyle}>E-mail de Acesso</label><input type="email" value={emailUsu} onChange={e => setEmailUsu(e.target.value)} required style={inputStyle} /></div>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 20%' }}><label style={labelStyle}>{editandoUsuId ? 'Nova Senha (Opcional)' : 'Senha Provisória'}</label><input type="password" value={senhaUsu} onChange={e => setSenhaUsu(e.target.value)} style={inputStyle} /></div>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 20%' }}><label style={labelStyle}>Nível de Acesso</label>
-          <select value={nivelUsu} onChange={e => setNivelUsu(e.target.value)} style={{ ...inputStyle, height: '35px' }}>
-            <option value="usuario_comum">Visualizador (Leitura)</option><option value="adm">Administrador</option><option value="super_user">Super User</option>
-          </select>
+      <div className="card bg-white border-0 shadow-sm mb-4 rounded-3" style={{ borderTop: '4px solid #6f42c1 !important' }}>
+        <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+          <h5 className="card-title fw-bold mb-0" style={{ color: '#6f42c1' }}>
+            {editandoId ? '✏️ Editar Nível de Acesso' : '➕ Conceder Novo Acesso'}
+          </h5>
         </div>
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-          {editandoUsuId && <button type="button" onClick={limparFormUsu} style={{ ...actionBtnStyle, backgroundColor: '#95a5a6' }}>Cancelar</button>}
-          <button type="submit" style={{ ...actionBtnStyle, backgroundColor: editandoUsuId ? '#f39c12' : '#2ecc71' }}>{editandoUsuId ? 'Atualizar Usuário' : '+ Criar Conta'}</button>
-        </div>
-      </form>
+        <div className="card-body p-4">
+          
+          <form onSubmit={handleSubmit} className="row g-3">
+            <div className="col-12 col-md-3">
+              <label className="form-label fw-medium text-secondary">Nome Completo</label>
+              <input type="text" className="form-control bg-light" value={nome} onChange={e => setNome(e.target.value)} required placeholder="Nome do Funcionário" />
+            </div>
+            <div className="col-12 col-md-3">
+              <label className="form-label fw-medium text-secondary">E-mail Corporativo</label>
+              <input type="email" className="form-control bg-light" value={email} onChange={e => setEmail(e.target.value)} required placeholder="usuario@empresa.com" />
+            </div>
+            <div className="col-12 col-md-3">
+              <label className="form-label fw-medium text-secondary">Senha {editandoId && <small className="text-muted">(Opcional)</small>}</label>
+              <input type="password" className="form-control bg-light" value={senha} onChange={e => setSenha(e.target.value)} placeholder={editandoId ? "Deixe em branco para manter" : "Crie uma senha"} />
+            </div>
+            <div className="col-12 col-md-3">
+              <label className="form-label fw-medium text-secondary">Nível de Permissão</label>
+              <select className="form-select bg-light" value={role} onChange={e => setRole(e.target.value)} required>
+                <option value="usuario_comum">Usuário Comum</option>
+                <option value="adm">Administrador (ADM)</option>
+                <option value="super_user">Super User (Acesso Total)</option>
+              </select>
+            </div>
+            
+            <div className="col-12 d-flex gap-2 justify-content-md-end mt-4">
+              {editandoId && (
+                <button type="button" className="btn btn-outline-secondary shadow-sm" onClick={limparForm}>Cancelar</button>
+              )}
+              <button type="submit" className={`btn shadow-sm fw-bold ${editandoId ? 'btn-warning text-dark' : 'text-white'}`} style={{ backgroundColor: editandoId ? '' : '#6f42c1' }}>
+                {editandoId ? 'Atualizar Permissões' : 'Criar Credencial'}
+              </button>
+            </div>
+          </form>
 
-      <table style={tableStyle}>
-        <thead><tr style={{ backgroundColor: '#ecf0f1', textAlign: 'left' }}><th style={thStyle}>Nome</th><th style={thStyle}>E-mail</th><th style={thStyle}>Nível de Acesso</th><th style={thStyle}>Ações</th></tr></thead>
-        <tbody>
-          {usuarios.map(usuario => (
-            <tr key={usuario._id} style={{ borderBottom: '1px solid #eee' }}><td style={tdStyle}>{usuario.name}</td><td style={tdStyle}>{usuario.email}</td>
-              <td style={tdStyle}><span style={{ padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: usuario.role === 'super_user' ? '#f5b041' : usuario.role === 'adm' ? '#5dade2' : '#aeb6bf', color: 'white' }}>{usuario.role === 'super_user' ? '👑 Super User' : usuario.role === 'adm' ? '🛡️ Adm' : '👀 Visualizador'}</span></td>
-              <td style={tdStyle}>
-                {(usuario.role !== 'super_user' || usuario._id === loggedUserId) ? (
-                  <button onClick={() => handleEditUsuClick(usuario)} style={{ ...actionBtnStyle, backgroundColor: '#3498db' }}>Editar</button>
-                ) : <span style={{ fontSize: '12px', color: '#999', fontStyle: 'italic' }}>Bloqueado</span>}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        </div>
+      </div>
+
+      {/* TABELA DE USUÁRIOS */}
+      <div className="card bg-white border-0 shadow-sm rounded-3 overflow-hidden" style={{ borderTop: '4px solid #6c757d !important' }}>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead style={{ backgroundColor: '#f8f9fa' }}>
+                <tr>
+                  <th className="px-4 py-3 text-secondary border-bottom">Funcionário</th>
+                  <th className="px-4 py-3 text-secondary border-bottom">E-mail de Acesso</th>
+                  <th className="px-4 py-3 text-secondary border-bottom">Cargo / Nível</th>
+                  <th className="px-4 py-3 text-secondary border-bottom text-end">Gerenciar</th>
+                </tr>
+              </thead>
+              <tbody className="border-top-0">
+                {usuarios.length === 0 ? (
+                  <tr><td colSpan="4" className="text-center py-5 text-muted">Carregando usuários...</td></tr>
+                ) : (
+                  usuarios.map(user => (
+                    <tr key={user._id}>
+                      <td className="px-4 fw-bold" style={{ color: '#2b3a4a' }}>
+                        {user.name} {user._id === loggedUserId && <span className="badge bg-light text-dark border ms-2">Você</span>}
+                      </td>
+                      <td className="px-4 text-muted">{user.email}</td>
+                      <td className="px-4">{getRoleBadge(user.role)}</td>
+                      <td className="px-4 text-end">
+                        <button onClick={() => handleEditClick(user)} className="btn btn-sm btn-outline-primary me-2 fw-medium shadow-sm">Editar</button>
+                        <button 
+                          onClick={() => handleDelete(user._id)} 
+                          className={`btn btn-sm btn-outline-danger fw-medium shadow-sm ${user._id === loggedUserId ? 'disabled opacity-50' : ''}`}
+                        >
+                          Revogar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
-
-const inputStyle = { padding: '8px', border: '1px solid #ccc', borderRadius: '4px' };
-const formStyle = { backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-start' };
-const labelStyle = { fontSize: '13px', marginBottom: '5px', color: '#555', fontWeight: '500' };
-const actionBtnStyle = { padding: '8px 15px', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', height: '38px', fontWeight: 'bold' };
-const tableStyle = { width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' };
-const thStyle = { padding: '12px 15px', borderBottom: '2px solid #ddd' };
-const tdStyle = { padding: '12px 15px' };
 
 export default UsuariosTab;

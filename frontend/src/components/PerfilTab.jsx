@@ -2,70 +2,128 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const PerfilTab = () => {
-  const [perfilNome, setPerfilNome] = useState('');
-  const [perfilEmail, setPerfilEmail] = useState('');
-  const [perfilSenha, setPerfilSenha] = useState('');
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [role, setRole] = useState('');
+  
+  // Estado para mostrar a mensagem de sucesso na tela
+  const [mensagem, setMensagem] = useState({ tipo: '', texto: '' });
 
-  const fetchProfile = async () => {
+  useEffect(() => {
+    const fetchPerfil = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/users/profile', {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setNome(response.data.name);
+        setEmail(response.data.email);
+        setRole(response.data.role);
+      } catch (error) {
+        console.error('Erro ao carregar dados do perfil', error);
+      }
+    };
+    fetchPerfil();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMensagem({ tipo: '', texto: '' }); // Limpa mensagens anteriores
+
     try {
-      const response = await axios.get('http://localhost:3000/api/users/profile', { 
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+      const payload = { name: nome, email };
+      if (senha) payload.password = senha; // Só manda a senha se o usuário digitou uma nova
+
+      await axios.put('http://localhost:3000/api/users/profile', payload, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setPerfilNome(response.data.name);
-      setPerfilEmail(response.data.email);
+      
+      setMensagem({ tipo: 'success', texto: 'Seus dados foram atualizados com sucesso!' });
+      setSenha(''); // Limpa o campo de senha por segurança
+      
+      // Faz a mensagem sumir sozinha depois de 3 segundos
+      setTimeout(() => setMensagem({ tipo: '', texto: '' }), 3000);
     } catch (error) {
-      console.error('Erro ao buscar perfil:', error);
+      setMensagem({ tipo: 'danger', texto: 'Erro ao atualizar o perfil. Verifique os dados.' });
     }
   };
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = { name: perfilNome, email: perfilEmail };
-      if (perfilSenha) payload.password = perfilSenha;
-
-      await axios.put('http://localhost:3000/api/users/profile', payload, { 
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
-      });
-      alert('Seu perfil foi atualizado com sucesso!');
-      setPerfilSenha(''); 
-    } catch (error) {
-      alert('Erro ao atualizar o perfil.');
-    }
+  // Função para deixar o nome do cargo mais bonito na tela
+  const getRoleDisplayName = (r) => {
+    if (r === 'super_user') return 'Super User (Acesso Total)';
+    if (r === 'adm') return 'Administrador do Sistema';
+    return 'Usuário Comum';
   };
 
   return (
-    <div>
-      <h2>Minha Conta</h2>
-      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', maxWidth: '500px' }}>
-        <p style={{ marginBottom: '20px', color: '#7f8c8d' }}>Atualize seus dados pessoais e senha de acesso ao sistema.</p>
-        
-        <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <label style={labelStyle}>Meu Nome</label>
-            <input type="text" value={perfilNome} onChange={e => setPerfilNome(e.target.value)} required style={inputStyle} />
+    <div className="fade-in">
+      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-2">
+        <h3 className="fw-bold text-dark mb-0" style={{ color: '#1e2b3c' }}>👤 Configurações da Conta</h3>
+      </div>
+
+      <div className="row justify-content-center">
+        <div className="col-12 col-lg-8">
+          
+          {/* ALERTA DE SUCESSO OU ERRO */}
+          {mensagem.texto && (
+            <div className={`alert alert-${mensagem.tipo} shadow-sm border-0 fw-medium d-flex align-items-center`} role="alert">
+              {mensagem.tipo === 'success' ? '✅ ' : '❌ '} {mensagem.texto}
+            </div>
+          )}
+
+          <div className="card bg-white border-0 shadow-sm mb-4 rounded-3" style={{ borderTop: '4px solid #0dcaf0 !important' }}>
+            <div className="card-header bg-white border-bottom-0 pt-4 pb-0 text-center">
+              
+              {/* Avatar Simbólico */}
+              <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style={{ width: '80px', height: '80px', backgroundColor: '#eef2f5', border: '3px solid #0dcaf0' }}>
+                <span className="fs-1">👤</span>
+              </div>
+              
+              <h5 className="card-title fw-bold mb-1" style={{ color: '#1e2b3c' }}>Meus Dados</h5>
+              <p className="text-muted small">Mantenha suas informações de acesso atualizadas</p>
+            </div>
+            
+            <div className="card-body p-4 pt-2">
+              <form onSubmit={handleSubmit} className="row g-3">
+                
+                {/* Campo de Cargo (Bloqueado/Somente Leitura) */}
+                <div className="col-12 mb-2 text-center">
+                  <span className="badge bg-light text-dark border px-3 py-2 shadow-sm fs-6">
+                    Nível de Acesso: <span className="text-info fw-bold">{getRoleDisplayName(role)}</span>
+                  </span>
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label fw-medium text-secondary">Nome Completo</label>
+                  <input type="text" className="form-control bg-light" value={nome} onChange={e => setNome(e.target.value)} required />
+                </div>
+                
+                <div className="col-12">
+                  <label className="form-label fw-medium text-secondary">E-mail de Acesso</label>
+                  <input type="email" className="form-control bg-light" value={email} onChange={e => setEmail(e.target.value)} required />
+                </div>
+                
+                <div className="col-12 mt-4">
+                  <div className="p-3 rounded bg-light border border-secondary-subtle">
+                    <label className="form-label fw-bold text-dark mb-1">🔐 Alterar Senha</label>
+                    <p className="text-muted small mb-2">Preencha apenas se quiser trocar a sua senha atual.</p>
+                    <input type="password" className="form-control" value={senha} onChange={e => setSenha(e.target.value)} placeholder="Nova senha (mínimo 6 caracteres)" />
+                  </div>
+                </div>
+                
+                <div className="col-12 d-flex justify-content-end mt-4">
+                  <button type="submit" className="btn btn-info text-dark fw-bold px-4 shadow-sm">
+                    💾 Salvar Alterações
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <label style={labelStyle}>Meu E-mail</label>
-            <input type="email" value={perfilEmail} onChange={e => setPerfilEmail(e.target.value)} required style={inputStyle} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <label style={labelStyle}>Nova Senha</label>
-            <input type="password" value={perfilSenha} onChange={e => setPerfilSenha(e.target.value)} placeholder="Deixe em branco para não alterar" style={inputStyle} />
-          </div>
-          <button type="submit" style={btnSalvarStyle}>Salvar Minhas Informações</button>
-        </form>
+
+        </div>
       </div>
     </div>
   );
 };
-
-const inputStyle = { padding: '10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '15px' };
-const labelStyle = { fontSize: '14px', marginBottom: '5px', color: '#555', fontWeight: 'bold' };
-const btnSalvarStyle = { padding: '10px 15px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', marginTop: '10px' };
 
 export default PerfilTab;

@@ -1,25 +1,20 @@
 const mongoose = require('mongoose');
 
 const clientSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
-    required: true 
-  },
-  email: { 
-    type: String, 
-    required: true, 
-    unique: true 
-  },
-  phone: { 
-    type: String,
-    required: false 
-  },
-  address: {
-    type: String,
-    required: false
-  }
-}, { 
-  timestamps: true // Cria automaticamente os campos createdAt e updatedAt
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: { type: String },
+  cep: { type: String }, 
+  address: { type: String },
+  
+  purchases: [{
+    productId: String, // 🔥 A CHAVE MESTRA QUE FALTAVA AQUI 🔥
+    productName: String,
+    quantity: Number,
+    price: Number,
+    subtotal: Number
+  }],
+  totalSpent: { type: Number, default: 0 } 
 });
 
 module.exports = mongoose.model('Client', clientSchema);

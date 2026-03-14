@@ -1,21 +1,18 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Auth from './pages/auth';
 import Dashboard from './pages/Dashboard';
-import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        {/* Rota Pública */}
-        <Route path="/" element={<Login />} />
-
-        {/* Rotas Protegidas */}
-        <Route element={<ProtectedRoute allowedRoles={['super_user', 'adm', 'usuario_comum']} />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Route>
+        {/* Rota inicial de Login/Cadastro */}
+        <Route path="/" element={<Auth />} /> 
+        
+        {/* Rota do Dashboard livre para teste */}
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 

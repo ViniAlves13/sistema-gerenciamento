@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
-
+const jwt = require('jsonwebtoken');
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password'); // Oculta a senha na listagem
@@ -83,5 +83,87 @@ exports.updateProfile = async (req, res) => {
     res.status(200).json({ message: 'Perfil atualizado com sucesso!' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar perfil' });
+  }
+};
+// Registro de usuário público (Força o nível 'usuario_comum')
+exports.register = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // 1. Verifica se o e-mail já existe no banco
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ error: 'Este e-mail já está cadastrado.' });
+    }
+
+    // 2. Cria o usuário com a trava de segurança no 'role'
+    user = new User({
+      name,
+      email,
+      password,
+      role: 'usuario_comum' // Ignora o que vier do frontend e força esse nível
+    });
+
+    // 3. Criptografa a senha
+    const bcrypt = require('bcryptjs');
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    // 4. Salva no banco
+    await user.save();
+    
+    res.status(201).json({ message: 'Conta criada com sucesso!' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao registrar usuário.' });
+  }
+};
+// Função de Login
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. Acha o usuário pelo e-mail
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ error: 'E-mail ou senha inválidos' });
+    }
+
+    // 2. Compara a senha digitada com a senha criptografada do banco
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'E-mail ou senha inválidos' });
+    }
+
+    // 3. Se tudo der certo, gera o "Crachá" (Token JWT)
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' } // Crachá vale por 1 dia
+    );
+
+    // 4. Devolve o token para o React
+    res.json({ token, role: user.role });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro no servidor durante o login' });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    // Regra de segurança extra: Ninguém pode deletar um super_user
+    if (user.role === 'super_user') {
+      return res.status(403).json({ error: 'Não é permitido excluir um Super Usuário do sistema.' });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Usuário deletado com sucesso!' });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao deletar usuário' });
   }
 };

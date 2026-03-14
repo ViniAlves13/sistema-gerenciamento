@@ -11,8 +11,9 @@ const ProdutosTab = ({ userRole }) => {
 
   const fetchProdutos = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/api/products', { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.get('http://localhost:3000/api/products', { 
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
+      });
       setProdutos(response.data);
     } catch (error) { console.error(error); }
   };
@@ -22,12 +23,11 @@ const ProdutosTab = ({ userRole }) => {
   const handleSubmitProduct = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
       const payload = { name: nomeProd, description: descricaoProd, price: Number(precoProd), stock: Number(estoqueProd) };
       if (editandoProdId) {
-        await axios.put(`http://localhost:3000/api/products/${editandoProdId}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.put(`http://localhost:3000/api/products/${editandoProdId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       } else {
-        await axios.post('http://localhost:3000/api/products', payload, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.post('http://localhost:3000/api/products', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       }
       limparFormProd(); fetchProdutos();
     } catch (error) { alert('Erro ao salvar produto.'); }
@@ -41,7 +41,7 @@ const ProdutosTab = ({ userRole }) => {
   const limparFormProd = () => { setNomeProd(''); setDescricaoProd(''); setPrecoProd(''); setEstoqueProd(''); setEditandoProdId(null); };
 
   const handleDeleteProduct = async (id) => {
-    if (!window.confirm('Deletar produto?')) return;
+    if (!window.confirm('Excluir este produto do sistema?')) return;
     try {
       await axios.delete(`http://localhost:3000/api/products/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       fetchProdutos(); 
@@ -49,40 +49,99 @@ const ProdutosTab = ({ userRole }) => {
   };
 
   return (
-    <div>
-      <h2>Gerenciamento de Produtos</h2>
+    <div className="fade-in">
+      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-2">
+        <h3 className="fw-bold text-dark mb-0" style={{ color: '#1e2b3c' }}>📦 Gestão de Produtos</h3>
+        <span className="badge bg-primary rounded-pill px-3 py-2 shadow-sm">
+          {produtos.length} Cadastrados
+        </span>
+      </div>
+
       {(userRole === 'super_user' || userRole === 'adm') && (
-        <form onSubmit={handleSubmitProduct} style={formStyle}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}><label style={labelStyle}>Nome</label><input type="text" value={nomeProd} onChange={e => setNomeProd(e.target.value)} required style={inputStyle} /></div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}><label style={labelStyle}>Descrição</label><input type="text" value={descricaoProd} onChange={e => setDescricaoProd(e.target.value)} style={inputStyle} /></div>
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100px' }}><label style={labelStyle}>Preço</label><input type="number" step="0.01" value={precoProd} onChange={e => setPrecoProd(e.target.value)} required style={inputStyle} /></div>
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100px' }}><label style={labelStyle}>Estoque</label><input type="number" value={estoqueProd} onChange={e => setEstoqueProd(e.target.value)} required style={inputStyle} /></div>
-          <button type="submit" style={{ ...actionBtnStyle, backgroundColor: editandoProdId ? '#f39c12' : '#2ecc71' }}>{editandoProdId ? 'Atualizar' : '+ Adicionar'}</button>
-          {editandoProdId && <button type="button" onClick={limparFormProd} style={{ ...actionBtnStyle, backgroundColor: '#95a5a6' }}>Cancelar</button>}
-        </form>
+        <div className="card bg-white border-0 shadow-sm mb-4 rounded-3" style={{ borderTop: '4px solid #0d6efd !important' }}>
+          <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
+            <h5 className="card-title text-primary fw-bold mb-0">
+              {editandoProdId ? '✏️ Editar Produto Selecionado' : '➕ Cadastrar Novo Produto'}
+            </h5>
+          </div>
+          <div className="card-body p-4">
+            
+            <form onSubmit={handleSubmitProduct} className="row g-3">
+              <div className="col-12 col-md-4">
+                <label className="form-label fw-medium text-secondary">Nome do Produto</label>
+                <input type="text" className="form-control bg-light" value={nomeProd} onChange={e => setNomeProd(e.target.value)} required placeholder="Ex: Teclado Mecânico" />
+              </div>
+              <div className="col-12 col-md-4">
+                <label className="form-label fw-medium text-secondary">Descrição Breve</label>
+                <input type="text" className="form-control bg-light" value={descricaoProd} onChange={e => setDescricaoProd(e.target.value)} placeholder="Detalhes do item..." />
+              </div>
+              <div className="col-6 col-md-2">
+                <label className="form-label fw-medium text-secondary">Preço (R$)</label>
+                <input type="number" step="0.01" className="form-control bg-light" value={precoProd} onChange={e => setPrecoProd(e.target.value)} required placeholder="0.00" />
+              </div>
+              <div className="col-6 col-md-2">
+                <label className="form-label fw-medium text-secondary">Estoque</label>
+                <input type="number" className="form-control bg-light" value={estoqueProd} onChange={e => setEstoqueProd(e.target.value)} required placeholder="0" />
+              </div>
+              
+              <div className="col-12 d-flex gap-2 justify-content-md-end mt-4">
+                {editandoProdId && (
+                  <button type="button" className="btn btn-outline-secondary shadow-sm" onClick={limparFormProd}>Cancelar</button>
+                )}
+                <button type="submit" className={`btn shadow-sm fw-bold ${editandoProdId ? 'btn-warning text-dark' : 'btn-primary'}`}>
+                  {editandoProdId ? 'Salvar Alterações' : 'Confirmar Cadastro'}
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
       )}
-      <table style={tableStyle}>
-        <thead><tr style={{ backgroundColor: '#ecf0f1', textAlign: 'left' }}><th style={thStyle}>Nome</th><th style={thStyle}>Descrição</th><th style={thStyle}>Preço</th><th style={thStyle}>Estoque</th>{(userRole === 'super_user' || userRole === 'adm') && <th style={thStyle}>Ações</th>}</tr></thead>
-        <tbody>
-          {produtos.map(produto => (
-            <tr key={produto._id} style={{ borderBottom: '1px solid #eee' }}><td style={tdStyle}>{produto.name}</td><td style={tdStyle}>{produto.description}</td><td style={tdStyle}>R$ {produto.price}</td><td style={tdStyle}>{produto.stock} unid.</td>
-              {(userRole === 'super_user' || userRole === 'adm') && (
-                <td style={tdStyle}><button onClick={() => handleEditProdClick(produto)} style={{ ...actionBtnStyle, backgroundColor: '#3498db', marginRight: '5px' }}>Editar</button><button onClick={() => handleDeleteProduct(produto._id)} style={{ ...actionBtnStyle, backgroundColor: '#e74c3c' }}>Deletar</button></td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+      {/* TABELA DE PRODUTOS */}
+      <div className="card bg-white border-0 shadow-sm rounded-3 overflow-hidden" style={{ borderTop: '4px solid #6c757d !important' }}>
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead style={{ backgroundColor: '#f8f9fa' }}>
+                <tr>
+                  <th className="px-4 py-3 text-secondary border-bottom">Produto</th>
+                  <th className="px-4 py-3 text-secondary border-bottom">Descrição</th>
+                  <th className="px-4 py-3 text-secondary border-bottom">Preço</th>
+                  <th className="px-4 py-3 text-secondary border-bottom">Estoque</th>
+                  {(userRole === 'super_user' || userRole === 'adm') && <th className="px-4 py-3 text-secondary border-bottom text-end">Ações</th>}
+                </tr>
+              </thead>
+              <tbody className="border-top-0">
+                {produtos.length === 0 ? (
+                  <tr><td colSpan="5" className="text-center py-5 text-muted">Nenhum produto registrado no inventário.</td></tr>
+                ) : (
+                  produtos.map(produto => (
+                    <tr key={produto._id}>
+                      <td className="px-4 fw-bold" style={{ color: '#2b3a4a' }}>{produto.name}</td>
+                      <td className="px-4 text-muted">{produto.description}</td>
+                      <td className="px-4 fw-bold text-success">R$ {produto.price}</td>
+                      <td className="px-4">
+                        <span className={`badge ${produto.stock > 10 ? 'bg-info text-dark' : 'bg-danger'}`}>
+                          {produto.stock} unid.
+                        </span>
+                      </td>
+                      {(userRole === 'super_user' || userRole === 'adm') && (
+                        <td className="px-4 text-end">
+                          <button onClick={() => handleEditProdClick(produto)} className="btn btn-sm btn-outline-primary me-2 fw-medium shadow-sm">Editar</button>
+                          <button onClick={() => handleDeleteProduct(produto._id)} className="btn btn-sm btn-outline-danger fw-medium shadow-sm">Excluir</button>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
-
-const inputStyle = { padding: '8px', border: '1px solid #ccc', borderRadius: '4px' };
-const formStyle = { backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' };
-const labelStyle = { fontSize: '13px', marginBottom: '5px', color: '#555', fontWeight: '500' };
-const actionBtnStyle = { padding: '8px 15px', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', height: '38px', fontWeight: 'bold' };
-const tableStyle = { width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' };
-const thStyle = { padding: '12px 15px', borderBottom: '2px solid #ddd' };
-const tdStyle = { padding: '12px 15px' };
 
 export default ProdutosTab;
