@@ -1,5 +1,5 @@
-const Client = require('../models/Client');
-const Product = require('../models/Product');
+const Client = require('../models/client');
+const Product = require('../models/product'); 
 
 exports.getClients = async (req, res) => {
   try {
