@@ -28,23 +28,21 @@ const PerfilTab = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMensagem({ tipo: '', texto: '' }); // Limpa mensagens anteriores
+    setMensagem({ tipo: '', texto: '' });
 
     try {
       const payload = { name: nome, email };
-      if (senha) payload.password = senha; // Só manda a senha se o usuário digitou uma nova
+      if (senha) payload.password = senha; 
 
       await axios.put('https://gestaopro-api-ovgf.onrender.com/api/users/profile', payload, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
       setMensagem({ tipo: 'success', texto: 'Seus dados foram atualizados com sucesso!' });
-      setSenha(''); // Limpa o campo de senha por segurança
+      setSenha(''); 
       
-      // Rola suavemente para o topo para garantir que o usuário veja o alerta no iPad
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // Faz a mensagem sumir sozinha depois de 4 segundos
       setTimeout(() => setMensagem({ tipo: '', texto: '' }), 4000);
     } catch (error) {
       setMensagem({ tipo: 'danger', texto: 'Erro ao atualizar o perfil. Verifique os dados.' });
@@ -52,7 +50,6 @@ const PerfilTab = () => {
     }
   };
 
-  // Função para deixar o nome do cargo mais bonito na tela
   const getRoleDisplayName = (r) => {
     if (r === 'super_user') return 'Super User (Acesso Total)';
     if (r === 'adm') return 'Administrador do Sistema';
@@ -66,7 +63,6 @@ const PerfilTab = () => {
       </div>
 
       <div className="row justify-content-center">
-        {/* Usando col-md-10 col-lg-8 para não ficar esticado demais no iPad em paisagem */}
         <div className="col-12 col-md-10 col-lg-8">
           
           {/* ALERTA DE SUCESSO OU ERRO */}
@@ -76,10 +72,9 @@ const PerfilTab = () => {
             </div>
           )}
 
-          <div className="card bg-white border-0 shadow-sm mb-5 rounded-4" style={{ borderTop: '5px solid #0dcaf0 !important' }}>
+          <div className="card bg-white border-0 shadow-sm mb-5 rounded-4 overflow-hidden" style={{ borderTop: '5px solid #0dcaf0 !important' }}>
             <div className="card-header bg-white border-bottom-0 pt-5 pb-0 text-center">
               
-              {/* Avatar Simbólico */}
               <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow-sm" style={{ width: '90px', height: '90px', backgroundColor: '#eef2f5', border: '4px solid #0dcaf0' }}>
                 <span className="fs-1">👤</span>
               </div>
@@ -91,11 +86,15 @@ const PerfilTab = () => {
             <div className="card-body p-4 p-md-5 pt-3">
               <form onSubmit={handleSubmit} className="row g-4">
                 
-                {/* Campo de Cargo (Bloqueado/Somente Leitura) */}
-                <div className="col-12 mb-3 text-center">
-                  <span className="badge bg-light text-dark border px-4 py-3 shadow-sm fs-6 rounded-3">
-                    Nível de Acesso: <span className="text-info fw-bold ms-1">{getRoleDisplayName(role)}</span>
-                  </span>
+                {/* Campo de Cargo (Corrigido para não vazar a tela no celular) */}
+                <div className="col-12 mb-3 d-flex justify-content-center">
+                  <div className="bg-light text-dark border px-4 py-3 shadow-sm rounded-3 text-center" style={{ maxWidth: '100%', wordBreak: 'break-word' }}>
+                    <span className="fs-6 fw-medium">Nível de Acesso:</span>
+                    {/* d-block no celular joga o cargo pra baixo, d-sm-inline no pc mantém do lado */}
+                    <span className="text-info fw-bold fs-6 d-block d-sm-inline ms-sm-2 mt-1 mt-sm-0">
+                      {getRoleDisplayName(role)}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="col-12">
