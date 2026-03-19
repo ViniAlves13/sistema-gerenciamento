@@ -4,7 +4,7 @@ const clientController = require('../controllers/clientController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 
-router.get('/', authMiddleware(['super_user', 'adm', 'user']), clientController.getClients);
+router.get('/', authMiddleware(['super_user', 'adm', 'usuario_comum']), clientController.getClients);
 
 
 router.post('/', authMiddleware(['super_user', 'adm']), clientController.createClient);
