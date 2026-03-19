@@ -120,7 +120,7 @@ const ClientesTab = ({ userRole }) => {
       };
 
       if (editandoId) {
-        // Se estiver editando, ele SOMA o valor atual com o que já tinha (opcional, aqui estamos substituindo para simplificar)
+        // Se estiver editando
         await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/clients/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       } else {
         await axios.post('https://gestaopro-api-ovgf.onrender.com/api/clients', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
@@ -191,7 +191,7 @@ const ClientesTab = ({ userRole }) => {
                 </div>
                 
                 <div className="col-12 col-md-2">
-                  <label className="form-label fw-medium text-secondary">CEP (Busca Automática)</label>
+                  <label className="form-label fw-medium text-secondary">CEP</label>
                   <input type="text" className="form-control bg-light border-primary" value={cep} onChange={handleCepChange} onBlur={buscarEnderecoPorCep} placeholder="00000-000" />
                 </div>
                 <div className="col-12 col-md-10">
@@ -200,11 +200,11 @@ const ClientesTab = ({ userRole }) => {
                 </div>
               </div>
 
-              {/* SESSÃO 2: CARRINHO DE COMPRAS (O SEU NOVO RECURSO) */}
+              {/* SESSÃO 2: CARRINHO DE COMPRAS */}
               <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">2. Registro de Compras (Opcional)</h6>
               <div className="row g-3 align-items-end p-3 rounded bg-light border border-secondary-subtle mb-3">
                 <div className="col-12 col-md-6">
-                  <label className="form-label fw-medium text-dark">Selecione o Produto (Do Estoque)</label>
+                  <label className="form-label fw-medium text-dark">Selecione o Produto</label>
                   <select className="form-select border-secondary" value={produtoSelecionado} onChange={e => setProdutoSelecionado(e.target.value)}>
                     <option value="">-- Escolha um produto --</option>
                     {produtos.map(p => (
@@ -220,7 +220,7 @@ const ClientesTab = ({ userRole }) => {
                 </div>
                 <div className="col-6 col-md-3">
                   <button type="button" className="btn btn-primary w-100 fw-bold shadow-sm" onClick={adicionarAoCarrinho} disabled={!produtoSelecionado}>
-                    ➕ Adicionar à Compra
+                    ➕ Adicionar
                   </button>
                 </div>
               </div>
@@ -231,7 +231,7 @@ const ClientesTab = ({ userRole }) => {
                   <table className="table table-sm table-bordered mb-0 bg-white">
                     <thead className="table-light">
                       <tr>
-                        <th>Produto Comprado</th>
+                        <th>Produto</th>
                         <th className="text-center">Qtd.</th>
                         <th>Preço Un.</th>
                         <th>Subtotal</th>
@@ -279,46 +279,86 @@ const ClientesTab = ({ userRole }) => {
       {/* TABELA GERAL DE CLIENTES */}
       <div className="card bg-white border-0 shadow-sm rounded-3 overflow-hidden" style={{ borderTop: '4px solid #6c757d !important' }}>
         <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead style={{ backgroundColor: '#f8f9fa' }}>
-                <tr>
-                  <th className="px-4 py-3 text-secondary border-bottom">Cliente</th>
-                  <th className="px-4 py-3 text-secondary border-bottom">Contato</th>
-                  <th className="px-4 py-3 text-secondary border-bottom">Total Gasto na Loja</th>
-                  {(userRole === 'super_user' || userRole === 'adm') && <th className="px-4 py-3 text-secondary border-bottom text-end">Ações</th>}
-                </tr>
-              </thead>
-              <tbody className="border-top-0">
-                {clientes.length === 0 ? (
-                  <tr><td colSpan="4" className="text-center py-5 text-muted">Nenhum cliente registrado.</td></tr>
-                ) : (
-                  clientes.map(cliente => (
-                    <tr key={cliente._id}>
-                      <td className="px-4">
-                        <span className="fw-bold" style={{ color: '#2b3a4a' }}>{cliente.name}</span><br/>
-                        <small className="text-muted">{cliente.email}</small>
-                      </td>
-                      <td className="px-4 text-muted">{cliente.phone || '-'}</td>
-                      <td className="px-4">
+          
+          {clientes.length === 0 ? (
+            <div className="text-center py-5 text-muted">Nenhum cliente registrado.</div>
+          ) : (
+            <>
+              {/* --- VERSÃO 1: TABELA (Para PC e Tablets: d-none esconde no mobile, d-md-block mostra no PC) --- */}
+              <div className="table-responsive d-none d-md-block">
+                <table className="table table-hover align-middle mb-0">
+                  <thead style={{ backgroundColor: '#f8f9fa' }}>
+                    <tr>
+                      <th className="px-4 py-3 text-secondary border-bottom">Cliente</th>
+                      <th className="px-4 py-3 text-secondary border-bottom">Contato</th>
+                      <th className="px-4 py-3 text-secondary border-bottom">Total Gasto na Loja</th>
+                      {(userRole === 'super_user' || userRole === 'adm') && <th className="px-4 py-3 text-secondary border-bottom text-end">Ações</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="border-top-0">
+                    {clientes.map(cliente => (
+                      <tr key={cliente._id}>
+                        <td className="px-4">
+                          <span className="fw-bold" style={{ color: '#2b3a4a' }}>{cliente.name}</span><br/>
+                          <small className="text-muted">{cliente.email}</small>
+                        </td>
+                        <td className="px-4 text-muted">{cliente.phone || '-'}</td>
+                        <td className="px-4">
+                          {cliente.totalSpent > 0 ? (
+                            <span className="badge bg-success shadow-sm fs-6">R$ {cliente.totalSpent.toFixed(2)}</span>
+                          ) : (
+                            <span className="text-muted fst-italic">Nenhuma compra</span>
+                          )}
+                        </td>
+                        {(userRole === 'super_user' || userRole === 'adm') && (
+                          <td className="px-4 text-end">
+                            <button onClick={() => handleEditClick(cliente)} className="btn btn-sm btn-outline-success me-1 fw-medium shadow-sm">Ver/Editar Compras</button>
+                            <button onClick={() => handleDelete(cliente._id)} className="btn btn-sm btn-outline-danger fw-medium shadow-sm">Excluir</button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* --- VERSÃO 2: CARTÕES (Para Celular: d-block mostra no mobile, d-md-none esconde no PC) --- */}
+              <div className="d-block d-md-none p-3 bg-light">
+                {clientes.map(cliente => (
+                  <div key={cliente._id} className="card shadow-sm border-0 mb-3">
+                    <div className="card-body p-3">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span className="fw-bold fs-5" style={{ color: '#2b3a4a' }}>{cliente.name}</span>
+                      </div>
+                      <div className="mb-2">
+                        <span className="text-secondary fw-bold small">E-mail: </span>
+                        <span className="text-muted small">{cliente.email}</span>
+                      </div>
+                      <div className="mb-2">
+                        <span className="text-secondary fw-bold small">Contato: </span>
+                        <span className="text-muted small">{cliente.phone || '-'}</span>
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center mb-3 mt-3 bg-white p-2 rounded border">
+                        <span className="text-secondary fw-bold small">Total Gasto: </span>
                         {cliente.totalSpent > 0 ? (
                           <span className="badge bg-success shadow-sm fs-6">R$ {cliente.totalSpent.toFixed(2)}</span>
                         ) : (
-                          <span className="text-muted fst-italic">Nenhuma compra</span>
+                          <span className="text-muted fst-italic small">Nenhuma compra</span>
                         )}
-                      </td>
+                      </div>
+                      
                       {(userRole === 'super_user' || userRole === 'adm') && (
-                        <td className="px-4 text-end">
-                          <button onClick={() => handleEditClick(cliente)} className="btn btn-sm btn-outline-success me-1 fw-medium shadow-sm">Ver/Editar Compras</button>
-                          <button onClick={() => handleDelete(cliente._id)} className="btn btn-sm btn-outline-danger fw-medium shadow-sm">Excluir</button>
-                        </td>
+                        <div className="d-flex gap-2 border-top pt-3 mt-2">
+                          <button onClick={() => handleEditClick(cliente)} className="btn btn-sm btn-outline-success w-50 fw-medium shadow-sm">Editar</button>
+                          <button onClick={() => handleDelete(cliente._id)} className="btn btn-sm btn-outline-danger w-50 fw-medium shadow-sm">Excluir</button>
+                        </div>
                       )}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
