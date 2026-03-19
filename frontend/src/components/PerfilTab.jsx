@@ -41,10 +41,14 @@ const PerfilTab = () => {
       setMensagem({ tipo: 'success', texto: 'Seus dados foram atualizados com sucesso!' });
       setSenha(''); // Limpa o campo de senha por segurança
       
-      // Faz a mensagem sumir sozinha depois de 3 segundos
-      setTimeout(() => setMensagem({ tipo: '', texto: '' }), 3000);
+      // Rola suavemente para o topo para garantir que o usuário veja o alerta no iPad
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Faz a mensagem sumir sozinha depois de 4 segundos
+      setTimeout(() => setMensagem({ tipo: '', texto: '' }), 4000);
     } catch (error) {
       setMensagem({ tipo: 'danger', texto: 'Erro ao atualizar o perfil. Verifique os dados.' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -57,62 +61,63 @@ const PerfilTab = () => {
 
   return (
     <div className="fade-in">
-      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-2">
+      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-3">
         <h3 className="fw-bold text-dark mb-0" style={{ color: '#1e2b3c' }}>👤 Configurações da Conta</h3>
       </div>
 
       <div className="row justify-content-center">
-        <div className="col-12 col-lg-8">
+        {/* Usando col-md-10 col-lg-8 para não ficar esticado demais no iPad em paisagem */}
+        <div className="col-12 col-md-10 col-lg-8">
           
           {/* ALERTA DE SUCESSO OU ERRO */}
           {mensagem.texto && (
-            <div className={`alert alert-${mensagem.tipo} shadow-sm border-0 fw-medium d-flex align-items-center`} role="alert">
-              {mensagem.tipo === 'success' ? '✅ ' : '❌ '} {mensagem.texto}
+            <div className={`alert alert-${mensagem.tipo} shadow-sm border-0 fw-medium d-flex align-items-center rounded-4 fs-6 mb-4`} role="alert">
+              <span className="me-2 fs-5">{mensagem.tipo === 'success' ? '✅' : '❌'}</span> {mensagem.texto}
             </div>
           )}
 
-          <div className="card bg-white border-0 shadow-sm mb-4 rounded-3" style={{ borderTop: '4px solid #0dcaf0 !important' }}>
-            <div className="card-header bg-white border-bottom-0 pt-4 pb-0 text-center">
+          <div className="card bg-white border-0 shadow-sm mb-5 rounded-4" style={{ borderTop: '5px solid #0dcaf0 !important' }}>
+            <div className="card-header bg-white border-bottom-0 pt-5 pb-0 text-center">
               
               {/* Avatar Simbólico */}
-              <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style={{ width: '80px', height: '80px', backgroundColor: '#eef2f5', border: '3px solid #0dcaf0' }}>
+              <div className="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow-sm" style={{ width: '90px', height: '90px', backgroundColor: '#eef2f5', border: '4px solid #0dcaf0' }}>
                 <span className="fs-1">👤</span>
               </div>
               
-              <h5 className="card-title fw-bold mb-1" style={{ color: '#1e2b3c' }}>Meus Dados</h5>
-              <p className="text-muted small">Mantenha suas informações de acesso atualizadas</p>
+              <h4 className="card-title fw-bold mb-1" style={{ color: '#1e2b3c' }}>Meus Dados</h4>
+              <p className="text-muted">Mantenha suas informações de acesso atualizadas</p>
             </div>
             
-            <div className="card-body p-4 pt-2">
-              <form onSubmit={handleSubmit} className="row g-3">
+            <div className="card-body p-4 p-md-5 pt-3">
+              <form onSubmit={handleSubmit} className="row g-4">
                 
                 {/* Campo de Cargo (Bloqueado/Somente Leitura) */}
-                <div className="col-12 mb-2 text-center">
-                  <span className="badge bg-light text-dark border px-3 py-2 shadow-sm fs-6">
-                    Nível de Acesso: <span className="text-info fw-bold">{getRoleDisplayName(role)}</span>
+                <div className="col-12 mb-3 text-center">
+                  <span className="badge bg-light text-dark border px-4 py-3 shadow-sm fs-6 rounded-3">
+                    Nível de Acesso: <span className="text-info fw-bold ms-1">{getRoleDisplayName(role)}</span>
                   </span>
                 </div>
 
                 <div className="col-12">
                   <label className="form-label fw-medium text-secondary">Nome Completo</label>
-                  <input type="text" className="form-control bg-light" value={nome} onChange={e => setNome(e.target.value)} required />
+                  <input type="text" className="form-control form-control-lg bg-light" value={nome} onChange={e => setNome(e.target.value)} required />
                 </div>
                 
                 <div className="col-12">
                   <label className="form-label fw-medium text-secondary">E-mail de Acesso</label>
-                  <input type="email" className="form-control bg-light" value={email} onChange={e => setEmail(e.target.value)} required />
+                  <input type="email" className="form-control form-control-lg bg-light" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
                 
-                <div className="col-12 mt-4">
-                  <div className="p-3 rounded bg-light border border-secondary-subtle">
-                    <label className="form-label fw-bold text-dark mb-1">🔐 Alterar Senha</label>
-                    <p className="text-muted small mb-2">Preencha apenas se quiser trocar a sua senha atual.</p>
-                    <input type="password" className="form-control" value={senha} onChange={e => setSenha(e.target.value)} placeholder="Nova senha (mínimo 6 caracteres)" />
+                <div className="col-12 mt-5">
+                  <div className="p-4 rounded-4 bg-light border border-secondary-subtle shadow-sm">
+                    <label className="form-label fw-bold text-dark mb-1 fs-5">🔐 Alterar Senha</label>
+                    <p className="text-muted mb-3">Preencha apenas se quiser trocar a sua senha atual. Caso contrário, deixe em branco.</p>
+                    <input type="password" className="form-control form-control-lg border-secondary" value={senha} onChange={e => setSenha(e.target.value)} placeholder="Nova senha (mínimo 6 caracteres)" />
                   </div>
                 </div>
                 
-                <div className="col-12 d-flex justify-content-end mt-4">
-                  <button type="submit" className="btn btn-info text-dark fw-bold px-4 shadow-sm">
+                <div className="col-12 d-flex justify-content-center justify-content-md-end mt-5 pt-3 border-top">
+                  <button type="submit" className="btn btn-lg btn-info text-dark fw-bold px-5 shadow w-100 w-md-auto">
                     💾 Salvar Alterações
                   </button>
                 </div>
