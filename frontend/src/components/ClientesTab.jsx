@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const ClientesTab = ({ userRole }) => {
   const [clientes, setClientes] = useState([]);
-  const [produtos, setProdutos] = useState([]); // Guarda os produtos do banco
+  const [produtos, setProdutos] = useState([]); 
   
   // Estados do formulário de Cliente
   const [nome, setNome] = useState('');
@@ -37,15 +37,13 @@ const ClientesTab = ({ userRole }) => {
   // REGRAS DE NEGÓCIO: MÁSCARAS E APIs
   // ==========================================
   
-  // Máscara de Telefone: (99) 99999-9999
   const handleTelefoneChange = (e) => {
-    let value = e.target.value.replace(/\D/g, ''); // Tira tudo que não é número
+    let value = e.target.value.replace(/\D/g, ''); 
     value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
     value = value.replace(/(\d)(\d{4})$/, '$1-$2');
     setTelefone(value.substring(0, 15));
   };
 
-  // Máscara de CEP e Busca de Endereço via API
   const handleCepChange = (e) => {
     let value = e.target.value.replace(/\D/g, '');
     value = value.replace(/^(\d{5})(\d)/, '$1-$2');
@@ -58,7 +56,6 @@ const ClientesTab = ({ userRole }) => {
       try {
         const response = await axios.get(`https://viacep.com.br/ws/${cepLimpo}/json/`);
         if (!response.data.erro) {
-          // Preenche o endereço sozinho!
           setEndereco(`${response.data.logradouro}, Bairro ${response.data.bairro}, ${response.data.localidade} - ${response.data.uf}`);
         } else {
           alert("CEP não encontrado!");
@@ -77,7 +74,6 @@ const ClientesTab = ({ userRole }) => {
 
     const produtoDb = produtos.find(p => p._id === produtoSelecionado);
     
-    // Regra: Não pode comprar mais do que tem no estoque!
     if (quantidadeCompra > produtoDb.stock) {
       return alert(`Estoque insuficiente! Temos apenas ${produtoDb.stock} unidades de ${produtoDb.name}.`);
     }
@@ -91,7 +87,7 @@ const ClientesTab = ({ userRole }) => {
     };
 
     setCarrinho([...carrinho, novoItem]);
-    setProdutoSelecionado(''); // Reseta o select
+    setProdutoSelecionado(''); 
     setQuantidadeCompra(1);
   };
 
@@ -99,7 +95,6 @@ const ClientesTab = ({ userRole }) => {
     setCarrinho(carrinho.filter((_, index) => index !== indexParaRemover));
   };
 
-  // Calcula o total da compra na hora
   const totalGasto = carrinho.reduce((acc, item) => acc + item.subtotal, 0);
 
   // ==========================================
@@ -120,7 +115,6 @@ const ClientesTab = ({ userRole }) => {
       };
 
       if (editandoId) {
-        // Se estiver editando
         await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/clients/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       } else {
         await axios.post('https://gestaopro-api-ovgf.onrender.com/api/clients', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
@@ -134,8 +128,10 @@ const ClientesTab = ({ userRole }) => {
   const handleEditClick = (cliente) => {
     setNome(cliente.name); setEmail(cliente.email);
     setTelefone(cliente.phone || ''); setCep(cliente.cep || ''); setEndereco(cliente.address || ''); 
-    setCarrinho(cliente.purchases || []); // Carrega as compras antigas se for editar
+    setCarrinho(cliente.purchases || []); 
     setEditandoId(cliente._id);
+    // Rolagem suave para o topo para facilitar no iPad
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const limparForm = () => { 
@@ -144,68 +140,67 @@ const ClientesTab = ({ userRole }) => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Excluir este cliente da base de dados?')) return;
+    if (!window.confirm('Tem certeza que deseja excluir este cliente da base de dados?')) return;
     try {
       await axios.delete(`https://gestaopro-api-ovgf.onrender.com/api/clients/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       fetchData(); 
     } catch (error) { alert('Erro ao deletar.'); }
   };
 
-  // Para achar qual o estoque máximo do produto selecionado no dropdown
   const estoqueMaximoAtual = produtoSelecionado ? produtos.find(p => p._id === produtoSelecionado)?.stock : 1;
 
   return (
     <div className="fade-in">
-      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-2">
+      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-3">
         <h3 className="fw-bold text-dark mb-0" style={{ color: '#1e2b3c' }}>👥 Carteira de Clientes e Vendas</h3>
-        <span className="badge bg-success rounded-pill px-3 py-2 shadow-sm">
+        <span className="badge bg-success rounded-pill px-4 py-2 shadow-sm fs-6">
           {clientes.length} Registrados
         </span>
       </div>
 
       {(userRole === 'super_user' || userRole === 'adm') && (
-        <div className="card bg-white border-0 shadow-sm mb-4 rounded-3" style={{ borderTop: '4px solid #198754 !important' }}>
+        <div className="card bg-white border-0 shadow-sm mb-5 rounded-4" style={{ borderTop: '5px solid #198754 !important' }}>
           <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
-            <h5 className="card-title text-success fw-bold mb-0">
-              {editandoId ? '✏️ Editar Cliente e Adicionar Compras' : '➕ Novo Cliente e Registro de Compra'}
-            </h5>
+            <h4 className="card-title text-success fw-bold mb-0">
+              {editandoId ? '✏️ Editar Cliente e Compras' : '➕ Novo Cliente e Compra'}
+            </h4>
           </div>
           <div className="card-body p-4">
             
             <form onSubmit={handleSubmit}>
               
               {/* SESSÃO 1: DADOS DO CLIENTE */}
-              <h6 className="fw-bold text-secondary mb-3 mt-2 border-bottom pb-2">1. Dados Pessoais</h6>
-              <div className="row g-3 mb-4">
+              <h5 className="fw-bold text-secondary mb-4 mt-2 border-bottom pb-2">1. Dados Pessoais</h5>
+              <div className="row g-4 mb-5">
                 <div className="col-12 col-md-4">
                   <label className="form-label fw-medium text-secondary">Nome Completo</label>
-                  <input type="text" className="form-control bg-light" value={nome} onChange={e => setNome(e.target.value)} required />
+                  <input type="text" className="form-control form-control-lg bg-light" value={nome} onChange={e => setNome(e.target.value)} required />
                 </div>
                 <div className="col-12 col-md-4">
                   <label className="form-label fw-medium text-secondary">E-mail</label>
-                  <input type="email" className="form-control bg-light" value={email} onChange={e => setEmail(e.target.value)} required />
+                  <input type="email" className="form-control form-control-lg bg-light" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
                 <div className="col-12 col-md-4">
                   <label className="form-label fw-medium text-secondary">WhatsApp / Celular</label>
-                  <input type="text" className="form-control bg-light" value={telefone} onChange={handleTelefoneChange} placeholder="(00) 00000-0000" />
+                  <input type="text" className="form-control form-control-lg bg-light" value={telefone} onChange={handleTelefoneChange} placeholder="(00) 00000-0000" />
                 </div>
                 
-                <div className="col-12 col-md-2">
+                <div className="col-12 col-md-3">
                   <label className="form-label fw-medium text-secondary">CEP</label>
-                  <input type="text" className="form-control bg-light border-primary" value={cep} onChange={handleCepChange} onBlur={buscarEnderecoPorCep} placeholder="00000-000" />
+                  <input type="text" className="form-control form-control-lg bg-light border-primary" value={cep} onChange={handleCepChange} onBlur={buscarEnderecoPorCep} placeholder="00000-000" />
                 </div>
-                <div className="col-12 col-md-10">
+                <div className="col-12 col-md-9">
                   <label className="form-label fw-medium text-secondary">Endereço Completo</label>
-                  <input type="text" className="form-control bg-light" value={endereco} onChange={e => setEndereco(e.target.value)} placeholder="Preenchido automaticamente ao digitar o CEP..." />
+                  <input type="text" className="form-control form-control-lg bg-light" value={endereco} onChange={e => setEndereco(e.target.value)} placeholder="Preenchido automaticamente pelo CEP..." />
                 </div>
               </div>
 
               {/* SESSÃO 2: CARRINHO DE COMPRAS */}
-              <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">2. Registro de Compras (Opcional)</h6>
-              <div className="row g-3 align-items-end p-3 rounded bg-light border border-secondary-subtle mb-3">
+              <h5 className="fw-bold text-secondary mb-4 border-bottom pb-2">2. Registro de Compras (Opcional)</h5>
+              <div className="row g-3 align-items-end p-4 rounded-4 bg-light border border-secondary-subtle mb-4 shadow-sm">
                 <div className="col-12 col-md-6">
-                  <label className="form-label fw-medium text-dark">Selecione o Produto</label>
-                  <select className="form-select border-secondary" value={produtoSelecionado} onChange={e => setProdutoSelecionado(e.target.value)}>
+                  <label className="form-label fw-bold text-dark">Selecione o Produto</label>
+                  <select className="form-select form-select-lg border-secondary" value={produtoSelecionado} onChange={e => setProdutoSelecionado(e.target.value)}>
                     <option value="">-- Escolha um produto --</option>
                     {produtos.map(p => (
                       <option key={p._id} value={p._id} disabled={p.stock === 0}>
@@ -215,11 +210,12 @@ const ClientesTab = ({ userRole }) => {
                   </select>
                 </div>
                 <div className="col-6 col-md-3">
-                  <label className="form-label fw-medium text-dark">Quantidade</label>
-                  <input type="number" min="1" max={estoqueMaximoAtual} className="form-control border-secondary" value={quantidadeCompra} onChange={e => setQuantidadeCompra(e.target.value)} disabled={!produtoSelecionado} />
+                  <label className="form-label fw-bold text-dark">Quantidade</label>
+                  <input type="number" min="1" max={estoqueMaximoAtual} className="form-control form-control-lg border-secondary text-center" value={quantidadeCompra} onChange={e => setQuantidadeCompra(e.target.value)} disabled={!produtoSelecionado} />
                 </div>
                 <div className="col-6 col-md-3">
-                  <button type="button" className="btn btn-primary w-100 fw-bold shadow-sm" onClick={adicionarAoCarrinho} disabled={!produtoSelecionado}>
+                  {/* Botão de adicionar maior e mais clicável */}
+                  <button type="button" className="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onClick={adicionarAoCarrinho} disabled={!produtoSelecionado}>
                     ➕ Adicionar
                   </button>
                 </div>
@@ -227,47 +223,52 @@ const ClientesTab = ({ userRole }) => {
 
               {/* LISTA DE PRODUTOS ADICIONADOS */}
               {carrinho.length > 0 && (
-                <div className="table-responsive mb-3">
-                  <table className="table table-sm table-bordered mb-0 bg-white">
+                <div className="table-responsive mb-4 rounded-3 border">
+                  <table className="table table-hover align-middle mb-0 bg-white">
                     <thead className="table-light">
                       <tr>
-                        <th>Produto</th>
-                        <th className="text-center">Qtd.</th>
-                        <th>Preço Un.</th>
-                        <th>Subtotal</th>
-                        <th></th>
+                        <th className="py-3 px-4">Produto</th>
+                        <th className="py-3 text-center">Qtd.</th>
+                        <th className="py-3">Preço Un.</th>
+                        <th className="py-3">Subtotal</th>
+                        <th className="py-3 text-center">Ação</th>
                       </tr>
                     </thead>
                     <tbody>
                       {carrinho.map((item, index) => (
                         <tr key={index}>
-                          <td className="fw-medium text-dark">{item.productName}</td>
-                          <td className="text-center">{item.quantity}</td>
+                          <td className="px-4 fw-medium text-dark">{item.productName}</td>
+                          <td className="text-center fs-5">{item.quantity}</td>
                           <td>R$ {item.price.toFixed(2)}</td>
-                          <td className="fw-bold text-success">R$ {item.subtotal.toFixed(2)}</td>
+                          <td className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</td>
                           <td className="text-center">
-                            <button type="button" className="btn btn-sm btn-outline-danger py-0 px-2" onClick={() => removerDoCarrinho(index)}>X</button>
+                            {/* Botão de remover maior para facilitar o toque no iPad */}
+                            <button type="button" className="btn btn-outline-danger p-2 rounded-circle" onClick={() => removerDoCarrinho(index)} title="Remover item">
+                              🗑️
+                            </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot className="table-success">
                       <tr>
-                        <td colSpan="3" className="text-end fw-bold">TOTAL DA COMPRA:</td>
-                        <td colSpan="2" className="fw-bold fs-5 text-success">R$ {totalGasto.toFixed(2)}</td>
+                        <td colSpan="3" className="text-end fw-bold py-3 fs-5">TOTAL DA COMPRA:</td>
+                        <td colSpan="2" className="fw-bold fs-4 text-success py-3">R$ {totalGasto.toFixed(2)}</td>
                       </tr>
                     </tfoot>
                   </table>
                 </div>
               )}
 
-              {/* BOTÕES DE SALVAR */}
-              <div className="col-12 d-flex gap-2 justify-content-md-end mt-4 pt-3 border-top">
+              {/* BOTÕES DE SALVAR - Destaque Principal */}
+              <div className="col-12 d-flex gap-3 justify-content-md-end mt-5 pt-4 border-top">
                 {editandoId && (
-                  <button type="button" className="btn btn-outline-secondary shadow-sm" onClick={limparForm}>Cancelar Edição</button>
+                  <button type="button" className="btn btn-lg btn-outline-secondary shadow-sm px-4 fw-medium" onClick={limparForm}>
+                    ❌ Cancelar
+                  </button>
                 )}
-                <button type="submit" className={`btn shadow-sm fw-bold px-4 ${editandoId ? 'btn-warning text-dark' : 'btn-success'}`}>
-                  {editandoId ? 'Atualizar Registro' : 'Salvar Cliente e Compras'}
+                <button type="submit" className={`btn btn-lg shadow text-white fw-bold px-5 ${editandoId ? 'btn-warning text-dark' : 'btn-success'}`}>
+                  {editandoId ? '✏️ Atualizar Registro' : '✅ Salvar Cliente e Compras'}
                 </button>
               </div>
             </form>
@@ -277,43 +278,48 @@ const ClientesTab = ({ userRole }) => {
       )}
 
       {/* TABELA GERAL DE CLIENTES */}
-      <div className="card bg-white border-0 shadow-sm rounded-3 overflow-hidden" style={{ borderTop: '4px solid #6c757d !important' }}>
+      <div className="card bg-white border-0 shadow-sm rounded-4 overflow-hidden" style={{ borderTop: '5px solid #6c757d !important' }}>
         <div className="card-body p-0">
           
           {clientes.length === 0 ? (
-            <div className="text-center py-5 text-muted">Nenhum cliente registrado.</div>
+            <div className="text-center py-5 text-muted fs-5">Nenhum cliente registrado.</div>
           ) : (
             <>
-              {/* --- VERSÃO 1: TABELA (Para PC e Tablets: d-none esconde no mobile, d-md-block mostra no PC) --- */}
+              {/* --- VERSÃO 1: TABELA (Para PC e iPads em paisagem) --- */}
               <div className="table-responsive d-none d-md-block">
                 <table className="table table-hover align-middle mb-0">
                   <thead style={{ backgroundColor: '#f8f9fa' }}>
                     <tr>
-                      <th className="px-4 py-3 text-secondary border-bottom">Cliente</th>
-                      <th className="px-4 py-3 text-secondary border-bottom">Contato</th>
-                      <th className="px-4 py-3 text-secondary border-bottom">Total Gasto na Loja</th>
-                      {(userRole === 'super_user' || userRole === 'adm') && <th className="px-4 py-3 text-secondary border-bottom text-end">Ações</th>}
+                      <th className="px-4 py-4 text-secondary border-bottom">Cliente</th>
+                      <th className="px-4 py-4 text-secondary border-bottom">Contato</th>
+                      <th className="px-4 py-4 text-secondary border-bottom">Total Gasto</th>
+                      {(userRole === 'super_user' || userRole === 'adm') && <th className="px-4 py-4 text-secondary border-bottom text-end">Ações</th>}
                     </tr>
                   </thead>
                   <tbody className="border-top-0">
                     {clientes.map(cliente => (
                       <tr key={cliente._id}>
-                        <td className="px-4">
-                          <span className="fw-bold" style={{ color: '#2b3a4a' }}>{cliente.name}</span><br/>
-                          <small className="text-muted">{cliente.email}</small>
+                        <td className="px-4 py-3">
+                          <span className="fw-bold fs-6" style={{ color: '#2b3a4a' }}>{cliente.name}</span><br/>
+                          <span className="text-muted">{cliente.email}</span>
                         </td>
-                        <td className="px-4 text-muted">{cliente.phone || '-'}</td>
-                        <td className="px-4">
+                        <td className="px-4 py-3 text-muted">{cliente.phone || '-'}</td>
+                        <td className="px-4 py-3">
                           {cliente.totalSpent > 0 ? (
-                            <span className="badge bg-success shadow-sm fs-6">R$ {cliente.totalSpent.toFixed(2)}</span>
+                            <span className="badge bg-success shadow-sm fs-6 px-3 py-2">R$ {cliente.totalSpent.toFixed(2)}</span>
                           ) : (
                             <span className="text-muted fst-italic">Nenhuma compra</span>
                           )}
                         </td>
                         {(userRole === 'super_user' || userRole === 'adm') && (
-                          <td className="px-4 text-end">
-                            <button onClick={() => handleEditClick(cliente)} className="btn btn-sm btn-outline-success me-1 fw-medium shadow-sm">Ver/Editar Compras</button>
-                            <button onClick={() => handleDelete(cliente._id)} className="btn btn-sm btn-outline-danger fw-medium shadow-sm">Excluir</button>
+                          <td className="px-4 py-3 text-end">
+                            {/* Botões de tabela com tamanho padrão, sem btn-sm, mais fáceis de tocar */}
+                            <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary px-3 py-2 me-2 fw-medium shadow-sm rounded-3">
+                              ✏️ Editar
+                            </button>
+                            <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger px-3 py-2 fw-medium shadow-sm rounded-3">
+                              🗑️ Excluir
+                            </button>
                           </td>
                         )}
                       </tr>
@@ -322,35 +328,39 @@ const ClientesTab = ({ userRole }) => {
                 </table>
               </div>
 
-              {/* --- VERSÃO 2: CARTÕES (Para Celular: d-block mostra no mobile, d-md-none esconde no PC) --- */}
+              {/* --- VERSÃO 2: CARTÕES (Para Celular e iPads em retrato estreito) --- */}
               <div className="d-block d-md-none p-3 bg-light">
                 {clientes.map(cliente => (
-                  <div key={cliente._id} className="card shadow-sm border-0 mb-3">
-                    <div className="card-body p-3">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
+                  <div key={cliente._id} className="card shadow-sm border-0 mb-4 rounded-4">
+                    <div className="card-body p-4">
+                      <div className="d-flex justify-content-between align-items-center mb-3">
                         <span className="fw-bold fs-5" style={{ color: '#2b3a4a' }}>{cliente.name}</span>
                       </div>
                       <div className="mb-2">
-                        <span className="text-secondary fw-bold small">E-mail: </span>
-                        <span className="text-muted small">{cliente.email}</span>
+                        <span className="text-secondary fw-bold">E-mail: </span>
+                        <span className="text-muted">{cliente.email}</span>
                       </div>
                       <div className="mb-2">
-                        <span className="text-secondary fw-bold small">Contato: </span>
-                        <span className="text-muted small">{cliente.phone || '-'}</span>
+                        <span className="text-secondary fw-bold">Contato: </span>
+                        <span className="text-muted">{cliente.phone || '-'}</span>
                       </div>
-                      <div className="d-flex justify-content-between align-items-center mb-3 mt-3 bg-white p-2 rounded border">
-                        <span className="text-secondary fw-bold small">Total Gasto: </span>
+                      <div className="d-flex justify-content-between align-items-center mb-4 mt-3 bg-light p-3 rounded-3 border">
+                        <span className="text-secondary fw-bold">Total Gasto: </span>
                         {cliente.totalSpent > 0 ? (
-                          <span className="badge bg-success shadow-sm fs-6">R$ {cliente.totalSpent.toFixed(2)}</span>
+                          <span className="badge bg-success shadow-sm fs-6 px-3 py-2">R$ {cliente.totalSpent.toFixed(2)}</span>
                         ) : (
-                          <span className="text-muted fst-italic small">Nenhuma compra</span>
+                          <span className="text-muted fst-italic">Nenhuma compra</span>
                         )}
                       </div>
                       
                       {(userRole === 'super_user' || userRole === 'adm') && (
-                        <div className="d-flex gap-2 border-top pt-3 mt-2">
-                          <button onClick={() => handleEditClick(cliente)} className="btn btn-sm btn-outline-success w-50 fw-medium shadow-sm">Editar</button>
-                          <button onClick={() => handleDelete(cliente._id)} className="btn btn-sm btn-outline-danger w-50 fw-medium shadow-sm">Excluir</button>
+                        <div className="d-flex gap-2 border-top pt-4">
+                          <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-2 w-50 fw-bold shadow-sm rounded-3">
+                            ✏️ Editar
+                          </button>
+                          <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-2 w-50 fw-bold shadow-sm rounded-3">
+                            🗑️ Excluir
+                          </button>
                         </div>
                       )}
                     </div>
