@@ -12,13 +12,13 @@ const productSchema = new mongoose.Schema({
   price: { 
     type: Number, 
     required: true,
-    min: 0 // Impede que o preço seja negativo
+    min: 0
   },
   stock: { 
     type: Number, 
     required: true, 
     default: 0,
-    min: 0 // Impede estoque negativo
+    min: 0
   }
 }, { 
   timestamps: true 

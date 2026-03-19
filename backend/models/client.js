@@ -8,7 +8,7 @@ const clientSchema = new mongoose.Schema({
   address: { type: String },
   
   purchases: [{
-    productId: String, // 🔥 A CHAVE MESTRA QUE FALTAVA AQUI 🔥
+    productId: String,
     productName: String,
     quantity: Number,
     price: Number,
