@@ -174,7 +174,6 @@ const ProdutosTab = ({ userRole }) => {
                       </div>
                       
                       {(userRole === 'super_user' || userRole === 'adm') && (
-                        /* Botoes empilhados e padronizados no mobile */
                         <div className="d-flex flex-column gap-2 border-top pt-4 mt-2">
                           <button onClick={() => handleEditProdClick(produto)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
                             ✏️ Editar
