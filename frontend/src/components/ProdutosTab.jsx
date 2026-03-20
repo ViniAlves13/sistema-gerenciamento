@@ -36,7 +36,7 @@ const ProdutosTab = ({ userRole }) => {
   const handleEditProdClick = (produto) => {
     setNomeProd(produto.name); setDescricaoProd(produto.description);
     setPrecoProd(produto.price); setEstoqueProd(produto.stock); setEditandoProdId(produto._id);
-    // Rolagem suave para o topo do formulário no iPad
+    // Rolagem suave para o topo do formulário no iPad/Mobile
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -119,7 +119,7 @@ const ProdutosTab = ({ userRole }) => {
                       <th className="px-4 py-4 text-secondary border-bottom">Descrição</th>
                       <th className="px-4 py-4 text-secondary border-bottom">Preço</th>
                       <th className="px-4 py-4 text-secondary border-bottom">Estoque</th>
-                      {(userRole === 'super_user' || userRole === 'adm') && <th className="px-4 py-4 text-secondary border-bottom text-end">Ações</th>}
+                      {(userRole === 'super_user' || userRole === 'adm') && <th className="px-4 py-4 text-secondary border-bottom text-center">Ações</th>}
                     </tr>
                   </thead>
                   <tbody className="border-top-0">
@@ -134,13 +134,16 @@ const ProdutosTab = ({ userRole }) => {
                           </span>
                         </td>
                         {(userRole === 'super_user' || userRole === 'adm') && (
-                          <td className="px-4 py-3 text-end">
-                            <button onClick={() => handleEditProdClick(produto)} className="btn btn-outline-primary px-3 py-2 me-2 fw-medium shadow-sm rounded-3">
-                              ✏️ Editar
-                            </button>
-                            <button onClick={() => handleDeleteProduct(produto._id)} className="btn btn-outline-danger px-3 py-2 fw-medium shadow-sm rounded-3">
-                              🗑️ Excluir
-                            </button>
+                          <td className="px-4 py-3">
+                            {/* Botoes padronizados lado a lado no PC para economizar altura, mas mantendo a mesma largura fixa */}
+                            <div className="d-flex flex-column gap-2 mx-auto" style={{ maxWidth: '110px' }}>
+                              <button onClick={() => handleEditProdClick(produto)} className="btn btn-outline-primary py-1 w-100 fw-medium shadow-sm rounded-3">
+                                ✏️ Editar
+                              </button>
+                              <button onClick={() => handleDeleteProduct(produto._id)} className="btn btn-outline-danger py-1 w-100 fw-medium shadow-sm rounded-3">
+                                🗑️ Excluir
+                              </button>
+                            </div>
                           </td>
                         )}
                       </tr>
@@ -171,11 +174,12 @@ const ProdutosTab = ({ userRole }) => {
                       </div>
                       
                       {(userRole === 'super_user' || userRole === 'adm') && (
-                        <div className="d-flex gap-2 border-top pt-4 mt-2">
-                          <button onClick={() => handleEditProdClick(produto)} className="btn btn-outline-primary py-2 w-50 fw-bold shadow-sm rounded-3">
+                        /* Botoes empilhados e padronizados no mobile */
+                        <div className="d-flex flex-column gap-2 border-top pt-4 mt-2">
+                          <button onClick={() => handleEditProdClick(produto)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
                             ✏️ Editar
                           </button>
-                          <button onClick={() => handleDeleteProduct(produto._id)} className="btn btn-outline-danger py-2 w-50 fw-bold shadow-sm rounded-3">
+                          <button onClick={() => handleDeleteProduct(produto._id)} className="btn btn-outline-danger py-2 w-100 fw-bold shadow-sm rounded-3">
                             🗑️ Excluir
                           </button>
                         </div>
