@@ -11,7 +11,7 @@ const ProdutosTab = ({ userRole }) => {
   const [estoqueProd, setEstoqueProd] = useState('');
   const [editandoProdId, setEditandoProdId] = useState(null);
 
-  // NOVO: Estado para controlar a abertura do Modal de Edição
+  // Estado para controlar a abertura do Modal de Edição
   const [showModal, setShowModal] = useState(false);
 
   const fetchProdutos = async () => {
@@ -25,40 +25,33 @@ const ProdutosTab = ({ userRole }) => {
 
   useEffect(() => { fetchProdutos(); }, []);
 
-  // Função ÚNICA de salvar (serve tanto para criar quanto para editar)
   const handleSubmitProduct = async (e) => {
     e.preventDefault();
     try {
       const payload = { name: nomeProd, description: descricaoProd, price: Number(precoProd), stock: Number(estoqueProd) };
       
       if (editandoProdId) {
-        // Atualizando existente (vem do Modal)
         await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/products/${editandoProdId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
         alert('Produto atualizado com sucesso!');
       } else {
-        // Criando novo (vem do form principal)
         await axios.post('https://gestaopro-api-ovgf.onrender.com/api/products', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
         alert('Produto cadastrado com sucesso!');
       }
       
-      fecharModal(); // Limpa tudo e fecha o modal se estiver aberto
+      fecharModal(); 
       fetchProdutos();
     } catch (error) { alert('Erro ao salvar produto.'); }
   };
 
-  // Acionado ao clicar no botão de Editar na tabela
   const handleEditProdClick = (produto) => {
     setNomeProd(produto.name); 
-    setDescricaoProd(produto.description);
+    setDescricaoProd(produto.description || '');
     setPrecoProd(produto.price); 
     setEstoqueProd(produto.stock); 
     setEditandoProdId(produto._id);
-    
-    // Abre o Modal em vez de rolar a tela
     setShowModal(true); 
   };
 
-  // Função para limpar os dados e fechar o Modal
   const fecharModal = () => { 
     setNomeProd(''); setDescricaoProd(''); setPrecoProd(''); setEstoqueProd(''); setEditandoProdId(null); 
     setShowModal(false);
@@ -81,14 +74,13 @@ const ProdutosTab = ({ userRole }) => {
         </span>
       </div>
 
-      {/* FORMULÁRIO PRINCIPAL (AGORA APENAS PARA CADASTRO) */}
+      {/* FORMULÁRIO PRINCIPAL (APENAS PARA CADASTRO) */}
       {(userRole === 'super_user' || userRole === 'adm') && (
         <div className="card bg-white border-0 shadow-sm mb-5 rounded-4" style={{ borderTop: '5px solid #0d6efd !important' }}>
           <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
             <h4 className="card-title text-primary fw-bold mb-0">➕ Cadastrar Novo Produto</h4>
           </div>
           <div className="card-body p-4">
-            {/* Note que se 'showModal' for true, os inputs do fundo não mudam porque o Modal assume o controle */}
             <form onSubmit={handleSubmitProduct} className="row g-4">
               <div className="col-12 col-md-5">
                 <label className="form-label fw-medium text-secondary">Nome do Produto</label>
@@ -124,7 +116,7 @@ const ProdutosTab = ({ userRole }) => {
             <div className="text-center py-5 text-muted fs-5">Nenhum produto registrado no inventário.</div>
           ) : (
             <>
-              {/* --- VERSÃO TABELA (Para PC/iPad) --- */}
+              {/* --- VERSÃO 1: TABELA (Para PC/iPad em paisagem) --- */}
               <div className="table-responsive d-none d-md-block">
                 <table className="table table-hover align-middle mb-0">
                   <thead style={{ backgroundColor: '#f8f9fa' }}>
@@ -141,7 +133,7 @@ const ProdutosTab = ({ userRole }) => {
                       <tr key={produto._id}>
                         <td className="px-4 py-3 fw-bold fs-6" style={{ color: '#2b3a4a' }}>{produto.name}</td>
                         <td className="px-4 py-3 text-muted">{produto.description || '-'}</td>
-                        <td className="px-4 py-3 fw-bold text-success fs-6">R$ {produto.price.toFixed(2)}</td>
+                        <td className="px-4 py-3 fw-bold text-success fs-6">R$ {Number(produto.price).toFixed(2)}</td>
                         <td className="px-4 py-3">
                           <span className={`badge shadow-sm fs-6 px-3 py-2 ${produto.stock > 10 ? 'bg-info text-dark' : 'bg-danger'}`}>
                             {produto.stock} unid.
@@ -165,24 +157,42 @@ const ProdutosTab = ({ userRole }) => {
                 </table>
               </div>
 
-              {/* --- VERSÃO CARTÕES (Mobile) --- */}
-              {/* Mantive o mesmo código da listagem mobile, apenas resumi aqui para focar no Modal */}
+              {/* --- VERSÃO 2: CARTÕES (Mobile e iPad em retrato) --- */}
               <div className="d-block d-md-none p-3 bg-light">
                 {produtos.map(produto => (
                   <div key={produto._id} className="card shadow-sm border-0 mb-4 rounded-4">
                      <div className="card-body p-4">
+                        
+                        {/* Nome e Descrição */}
                         <div className="fw-bold fs-4 mb-1" style={{ color: '#2b3a4a' }}>{produto.name}</div>
-                        {/* Outros campos e botões que chamam as mesmas funções... */}
-                        {(userRole === 'super_user' || userRole === 'adm') && (
-                        <div className="d-flex flex-column gap-2 border-top pt-4 mt-2">
-                          <button onClick={() => handleEditProdClick(produto)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
-                            ✏️ Editar
-                          </button>
-                          <button onClick={() => handleDeleteProduct(produto._id)} className="btn btn-outline-danger py-2 w-100 fw-bold shadow-sm rounded-3">
-                            🗑️ Excluir
-                          </button>
+                        <div className="text-muted small mb-3 pb-3 border-bottom">{produto.description || 'Sem descrição'}</div>
+                        
+                        {/* Preço e Estoque organizados lado a lado */}
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                          <div>
+                            <span className="text-secondary fw-bold d-block small">Preço</span>
+                            <span className="fw-bold text-success fs-5">R$ {Number(produto.price).toFixed(2)}</span>
+                          </div>
+                          <div className="text-end">
+                            <span className="text-secondary fw-bold d-block small mb-1">Em Estoque</span>
+                            <span className={`badge shadow-sm fs-6 px-3 py-2 ${produto.stock > 10 ? 'bg-info text-dark' : 'bg-danger'}`}>
+                              {produto.stock} unid.
+                            </span>
+                          </div>
                         </div>
-                      )}
+
+                        {/* Botões de Ação */}
+                        {(userRole === 'super_user' || userRole === 'adm') && (
+                          <div className="d-flex flex-column gap-2 border-top pt-4">
+                            <button onClick={() => handleEditProdClick(produto)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
+                              ✏️ Editar
+                            </button>
+                            <button onClick={() => handleDeleteProduct(produto._id)} className="btn btn-outline-danger py-2 w-100 fw-bold shadow-sm rounded-3">
+                              🗑️ Excluir
+                            </button>
+                          </div>
+                        )}
+                        
                      </div>
                   </div>
                 ))}
@@ -197,10 +207,7 @@ const ProdutosTab = ({ userRole }) => {
       {/* ========================================= */}
       {showModal && (
         <>
-          {/* Fundo escuro transparente (Backdrop) */}
           <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
-          
-          {/* O Modal em si */}
           <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1050 }} aria-hidden="true" onClick={fecharModal}>
             <div className="modal-dialog modal-dialog-centered modal-lg" onClick={e => e.stopPropagation()}>
               <div className="modal-content rounded-4 border-0 shadow-lg">

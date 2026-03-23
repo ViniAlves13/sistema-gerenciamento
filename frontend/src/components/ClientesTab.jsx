@@ -18,7 +18,7 @@ const ClientesTab = ({ userRole }) => {
   const [quantidadeCompra, setQuantidadeCompra] = useState(1);
   const [carrinho, setCarrinho] = useState([]);
 
-  // NOVO: Estado para controlar a abertura do Modal de Edição
+  // Estado para controlar a abertura do Modal de Edição
   const [showModal, setShowModal] = useState(false);
 
   // Busca Clientes e Produtos ao carregar a página
@@ -135,7 +135,7 @@ const ClientesTab = ({ userRole }) => {
     setTelefone(cliente.phone || ''); setCep(cliente.cep || ''); setEndereco(cliente.address || ''); 
     setCarrinho(cliente.purchases || []); 
     setEditandoId(cliente._id);
-    setShowModal(true); // Abre o Modal em vez de rolar a tela
+    setShowModal(true); 
   };
 
   const fecharModal = () => { 
@@ -154,10 +154,9 @@ const ClientesTab = ({ userRole }) => {
 
   const estoqueMaximoAtual = produtoSelecionado ? produtos.find(p => p._id === produtoSelecionado)?.stock : 1;
 
-  // Renderiza o miolo do formulário (para reutilizar no modal e na tela principal sem repetir 200 linhas de código)
+  // Renderiza o miolo do formulário
   const renderFormulario = () => (
     <>
-      {/* SESSÃO 1: DADOS DO CLIENTE */}
       <h5 className="fw-bold text-secondary mb-4 mt-2 border-bottom pb-2">1. Dados Pessoais</h5>
       <div className="row g-4 mb-5">
         <div className="col-12 col-md-4">
@@ -183,7 +182,6 @@ const ClientesTab = ({ userRole }) => {
         </div>
       </div>
 
-      {/* SESSÃO 2: CARRINHO DE COMPRAS */}
       <h5 className="fw-bold text-secondary mb-4 border-bottom pb-2">2. Registro de Compras (Opcional)</h5>
       <div className="row g-3 align-items-end p-4 rounded-4 bg-light border border-secondary-subtle mb-4 shadow-sm">
         <div className="col-12 col-md-6">
@@ -208,42 +206,75 @@ const ClientesTab = ({ userRole }) => {
         </div>
       </div>
 
-      {/* LISTA DE PRODUTOS ADICIONADOS */}
+      {/* LISTA DE PRODUTOS ADICIONADOS HÍBRIDA (TABELA NO PC E CARDS NO MOBILE) */}
       {carrinho.length > 0 && (
-        <div className="table-responsive mb-4 rounded-3 border">
-          <table className="table table-hover align-middle mb-0 bg-white">
-            <thead className="table-light">
-              <tr>
-                <th className="py-3 px-4">Produto</th>
-                <th className="py-3 text-center">Qtd.</th>
-                <th className="py-3">Preço Un.</th>
-                <th className="py-3">Subtotal</th>
-                <th className="py-3 text-center">Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {carrinho.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-4 fw-medium text-dark">{item.productName}</td>
-                  <td className="text-center fs-5">{item.quantity}</td>
-                  <td>R$ {item.price.toFixed(2)}</td>
-                  <td className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</td>
-                  <td className="text-center">
-                    <button type="button" className="btn btn-outline-danger p-2 rounded-circle" onClick={() => removerDoCarrinho(index)} title="Remover item">
+        <>
+          {/* --- VERSÃO PC: TABELA TRADICIONAL --- */}
+          <div className="table-responsive d-none d-md-block mb-4 rounded-3 border">
+            <table className="table table-hover align-middle mb-0 bg-white">
+              <thead className="table-light">
+                <tr>
+                  <th className="py-3 px-4">Produto</th>
+                  <th className="py-3 text-center">Qtd.</th>
+                  <th className="py-3">Preço Un.</th>
+                  <th className="py-3">Subtotal</th>
+                  <th className="py-3 text-center">Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {carrinho.map((item, index) => (
+                  <tr key={index}>
+                    <td className="px-4 fw-medium text-dark">{item.productName}</td>
+                    <td className="text-center fs-5">{item.quantity}</td>
+                    <td>R$ {item.price.toFixed(2)}</td>
+                    <td className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</td>
+                    <td className="text-center">
+                      <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center mx-auto" style={{width: '40px', height: '40px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="table-success">
+                <tr>
+                  <td colSpan="3" className="text-end fw-bold py-3 fs-5">TOTAL DA COMPRA:</td>
+                  <td colSpan="2" className="fw-bold fs-4 text-success py-3">R$ {totalGasto.toFixed(2)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {/* --- VERSÃO MOBILE: CARTÕES SEM ROLAGEM HORIZONTAL --- */}
+          <div className="d-block d-md-none mb-4">
+            <h6 className="fw-bold text-secondary mb-3">🛒 Resumo do Carrinho:</h6>
+            {carrinho.map((item, index) => (
+              <div key={index} className="card border-secondary-subtle mb-3 shadow-sm rounded-4">
+                <div className="card-body p-3">
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                    <span className="fw-bold text-dark fs-6">{item.productName}</span>
+                    <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center" style={{width: '35px', height: '35px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
                       🗑️
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot className="table-success">
-              <tr>
-                <td colSpan="3" className="text-end fw-bold py-3 fs-5">TOTAL DA COMPRA:</td>
-                <td colSpan="2" className="fw-bold fs-4 text-success py-3">R$ {totalGasto.toFixed(2)}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+                  </div>
+                  <div className="d-flex justify-content-between text-muted small mb-2 pb-2 border-bottom">
+                    <span>Preço Un.: R$ {item.price.toFixed(2)}</span>
+                    <span className="fw-bold text-dark">Qtd: {item.quantity}</span>
+                  </div>
+                  <div className="d-flex justify-content-between align-items-center">
+                    <span className="fw-bold text-secondary small">Subtotal:</span>
+                    <span className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {/* Total Mobile */}
+            <div className="bg-success text-white rounded-4 p-3 shadow-sm d-flex justify-content-between align-items-center mt-2">
+              <span className="fw-bold">TOTAL:</span>
+              <span className="fw-bold fs-4">R$ {totalGasto.toFixed(2)}</span>
+            </div>
+          </div>
+        </>
       )}
     </>
   );
@@ -257,7 +288,7 @@ const ClientesTab = ({ userRole }) => {
         </span>
       </div>
 
-      {/* FORMULÁRIO PRINCIPAL (AGORA APENAS PARA CADASTRO) */}
+      {/* FORMULÁRIO PRINCIPAL (APENAS CADASTRO) */}
       {(userRole === 'super_user' || userRole === 'adm') && (
         <div className="card bg-white border-0 shadow-sm mb-5 rounded-4" style={{ borderTop: '5px solid #198754 !important' }}>
           <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
@@ -268,7 +299,8 @@ const ClientesTab = ({ userRole }) => {
               
               {renderFormulario()}
 
-              <div className="col-12 d-flex gap-3 justify-content-md-end mt-5 pt-4 border-top">
+              {/* Correção Mobile: d-grid forca botoes a empilharem inteiros na tela pequena, d-md-flex organiza lado a lado no PC */}
+              <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-5 pt-4 border-top">
                 <button type="submit" className="btn btn-lg shadow text-white fw-bold px-5 btn-success">
                   ✅ Salvar Novo Cliente
                 </button>
@@ -314,7 +346,6 @@ const ClientesTab = ({ userRole }) => {
                         </td>
                         {(userRole === 'super_user' || userRole === 'adm') && (
                           <td className="px-4 py-3">
-                            {/* Botões empilhados verticalmente e com mesma largura no PC para economizar espaço horizontal */}
                             <div className="d-flex flex-column gap-2 mx-auto" style={{ maxWidth: '110px' }}>
                               <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-1 w-100 fw-medium shadow-sm rounded-3">
                                 ✏️ Editar
@@ -331,7 +362,7 @@ const ClientesTab = ({ userRole }) => {
                 </table>
               </div>
 
-              {/* --- VERSÃO 2: CARTÕES (Para Celular e iPads em retrato estreito) --- */}
+              {/* --- VERSÃO 2: CARTÕES --- */}
               <div className="d-block d-md-none p-3 bg-light">
                 {clientes.map(cliente => (
                   <div key={cliente._id} className="card shadow-sm border-0 mb-4 rounded-4">
@@ -376,14 +407,11 @@ const ClientesTab = ({ userRole }) => {
       </div>
 
       {/* ========================================= */}
-      {/* MODAL DE EDIÇÃO (Controlado pelo React)   */}
+      {/* MODAL DE EDIÇÃO */}
       {/* ========================================= */}
       {showModal && (
         <>
-          {/* Fundo escuro transparente (Backdrop) */}
           <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
-          
-          {/* O Modal (Usando modal-dialog-scrollable para telas longas) */}
           <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1050 }} aria-hidden="true" onClick={fecharModal}>
             <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" onClick={e => e.stopPropagation()}>
               <div className="modal-content rounded-4 border-0 shadow-lg" style={{ maxHeight: '90vh' }}>
@@ -396,15 +424,16 @@ const ClientesTab = ({ userRole }) => {
                 <div className="modal-body p-4 pt-2">
                   <form onSubmit={handleSubmit}>
                     
-                    {/* Renderiza todo aquele form gigante aqui dentro */}
                     {renderFormulario()}
                     
-                    {/* Botões isolados no rodapé do formulário do Modal */}
-                    <div className="col-12 d-flex gap-3 justify-content-end mt-4 pt-3 border-top">
-                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium" onClick={fecharModal}>
+                    {/* Correção Mobile dos Botões do Modal: 
+                        No celular, o "Salvar" fica em cima e grandão, o "Cancelar" fica embaixo.
+                        No PC, eles ficam elegantes lado a lado. */}
+                    <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top">
+                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
                          Cancelar
                       </button>
-                      <button type="submit" className="btn btn-lg btn-warning text-dark fw-bold px-5 shadow-sm">
+                      <button type="submit" className="btn btn-lg btn-warning text-dark fw-bold px-5 shadow-sm order-1 order-md-2">
                         💾 Salvar Alterações
                       </button>
                     </div>
