@@ -201,7 +201,7 @@ const ClientesTab = ({ userRole }) => {
             <option value="">-- Escolha um produto --</option>
             {produtos.map(p => (
               <option key={p._id} value={p._id} disabled={p.stock === 0}>
-                {p.name} (R$ {p.price}) - Estoque: {p.stock} {p.stock === 0 && '❌ Esgotado'}
+                {p.name} (R$ {p.price}) - Estoque: {p.stock} {p.stock === 0 && ' Esgotado!'}
               </option>
             ))}
           </select>
@@ -212,7 +212,7 @@ const ClientesTab = ({ userRole }) => {
         </div>
         <div className="col-6 col-md-3">
           <button type="button" className="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onClick={adicionarAoCarrinho} disabled={!produtoSelecionado}>
-            ➕ Adicionar
+            Adicionar
           </button>
         </div>
       </div>
@@ -239,7 +239,7 @@ const ClientesTab = ({ userRole }) => {
                     <td className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</td>
                     <td className="text-center">
                       <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center mx-auto" style={{width: '40px', height: '40px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
-                        🗑️
+                       Excluir
                       </button>
                     </td>
                   </tr>
@@ -255,14 +255,14 @@ const ClientesTab = ({ userRole }) => {
           </div>
 
           <div className="d-block d-md-none mb-4">
-            <h6 className="fw-bold text-secondary mb-3">🛒 Resumo do Carrinho:</h6>
+            <h6 className="fw-bold text-secondary mb-3">Resumo do Carrinho:</h6>
             {carrinho.map((item, index) => (
               <div key={index} className="card border-secondary-subtle mb-3 shadow-sm rounded-4">
                 <div className="card-body p-3">
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <span className="fw-bold text-dark fs-6">{item.productName}</span>
                     <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center" style={{width: '35px', height: '35px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
-                      🗑️
+                      Excluir
                     </button>
                   </div>
                   <div className="d-flex justify-content-between text-muted small mb-2 pb-2 border-bottom">
@@ -299,7 +299,7 @@ const ClientesTab = ({ userRole }) => {
         </div>
         {(userRole === 'super_user' || userRole === 'adm') && (
           <button onClick={handleAddClick} className="btn btn-lg shadow text-white fw-bold px-4 btn-success">
-            ➕ Novo Cliente
+            Novo Cliente
           </button>
         )}
       </div>
@@ -354,10 +354,10 @@ const ClientesTab = ({ userRole }) => {
                           <td className="px-4 py-3">
                             <div className="d-flex flex-column gap-2 mx-auto" style={{ maxWidth: '110px' }}>
                               <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-1 w-100 fw-medium shadow-sm rounded-3">
-                                ✏️ Editar
+                              Editar
                               </button>
                               <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-1 w-100 fw-medium shadow-sm rounded-3">
-                                🗑️ Excluir
+                              Excluir
                               </button>
                             </div>
                           </td>
@@ -410,10 +410,10 @@ const ClientesTab = ({ userRole }) => {
                       {(userRole === 'super_user' || userRole === 'adm') && (
                         <div className="d-flex flex-column gap-2 border-top pt-4 mt-2">
                           <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
-                            ✏️ Editar
+                          Editar
                           </button>
                           <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-2 w-100 fw-bold shadow-sm rounded-3">
-                            🗑️ Excluir
+                          Excluir
                           </button>
                         </div>
                       )}
@@ -438,7 +438,7 @@ const ClientesTab = ({ userRole }) => {
                 
                 <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
                   <h4 className={`modal-title fw-bold ${editandoId ? 'text-warning text-dark' : 'text-success'}`}>
-                    {editandoId ? '✏️ Editar Cliente e Compras' : '➕ Novo Cliente e Compra'}
+                    {editandoId ? 'Editar Cliente e Compras' : 'Novo Cliente e Compra'}
                   </h4>
                   <button type="button" className="btn-close shadow-none" onClick={fecharModal}></button>
                 </div>
@@ -450,10 +450,10 @@ const ClientesTab = ({ userRole }) => {
                     
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top w-100">
                       <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
-                         ❌ Cancelar
+                        Cancelar
                       </button>
                       <button type="submit" className={`btn btn-lg fw-bold px-5 shadow-sm order-1 order-md-2 ${editandoId ? 'btn-warning text-dark' : 'btn-success text-white'}`}>
-                        {editandoId ? '💾 Salvar Alterações' : '✅ Salvar Novo Cliente'}
+                        {editandoId ? 'Salvar Alterações' : 'Salvar Novo Cliente'}
                       </button>
                     </div>
 

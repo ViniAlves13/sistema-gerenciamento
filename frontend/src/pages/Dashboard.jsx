@@ -44,7 +44,7 @@ const Dashboard = () => {
         style={{ width: '280px', backgroundColor: '#1e2b3c', transition: '0.3s' }}
       >
         <div className="d-flex justify-content-between align-items-center mb-4 mt-2 me-md-auto text-decoration-none w-100">
-          <span className="fs-3 fw-bold text-info">📊 GestãoPro</span>
+          <span className="fs-3 fw-bold text-info">OMNIGESTOR</span>
           <button className="btn btn-close btn-close-white d-md-none" onClick={() => setMenuMobileAberto(false)}></button>
         </div>
         
@@ -54,7 +54,7 @@ const Dashboard = () => {
               className={`nav-link text-start w-100 py-2 fs-6 ${activeTab === 'produtos' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold hover-bg-light'}`} 
               onClick={() => trocarAba('produtos')}
             >
-              📦 Inventário e Produtos
+              Inventário e Produtos
             </button>
           </li>
           <li className="nav-item">
@@ -62,7 +62,7 @@ const Dashboard = () => {
               className={`nav-link text-start w-100 py-2 fs-6 ${activeTab === 'clientes' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold'}`} 
               onClick={() => trocarAba('clientes')}
             >
-              👥 Carteira de Clientes
+              Carteira de Clientes
             </button>
           </li>
           {userRole === 'super_user' && (
@@ -71,7 +71,7 @@ const Dashboard = () => {
                 className={`nav-link text-start w-100 py-2 fs-6 ${activeTab === 'usuarios' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold'}`} 
                 onClick={() => trocarAba('usuarios')}
               >
-                🛡️ Controle de Usuários
+                Controle de Usuários
               </button>
             </li>
           )}
@@ -84,7 +84,7 @@ const Dashboard = () => {
             <span className="fw-bold text-info text-uppercase fs-6">{userRole}</span>
           </div>
           <button className={`btn w-100 py-2 fw-bold ${activeTab === 'perfil' ? 'btn-info text-dark shadow-sm' : 'btn-outline-light'}`} onClick={() => trocarAba('perfil')}>
-            👤 Minha Conta
+          Minha Conta
           </button>
           <button className="btn btn-danger w-100 py-2 fw-bold shadow-sm" onClick={handleLogout}>
             Sair do Sistema
@@ -97,7 +97,7 @@ const Dashboard = () => {
         
         {/* NAVBAR MOBILE */}
         <div className="d-md-none p-3 d-flex justify-content-between align-items-center shadow-sm" style={{ backgroundColor: '#1e2b3c' }}>
-          <span className="fs-5 fw-bold text-info">📊 GestãoPro</span>
+          <span className="fs-5 fw-bold text-info">OMNIGESTOR</span>
           <button className="btn btn-outline-light btn-sm fw-bold" onClick={() => setMenuMobileAberto(true)}>☰ Menu</button>
         </div>
 
@@ -127,7 +127,7 @@ const Dashboard = () => {
           {/* RODAPÉ DO SISTEMA */}
           <footer className="mt-5 pt-3 text-center" style={{ borderTop: '1px solid #d1d7dc' }}>
             <small className="text-muted fw-medium">
-              © 2026 GestãoPro - Sistema de Gerenciamento Integrado. Todos os direitos reservados.
+              © 2026 Sistema de Gestão Empresarial - OMNIGESTOR.
             </small>
           </footer>
         </div>
