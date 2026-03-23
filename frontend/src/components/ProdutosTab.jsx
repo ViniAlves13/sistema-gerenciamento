@@ -11,7 +11,7 @@ const ProdutosTab = ({ userRole }) => {
   const [estoqueProd, setEstoqueProd] = useState('');
   const [editandoProdId, setEditandoProdId] = useState(null);
 
-  // Estado para controlar a abertura do Modal de Edição
+  // Estado para controlar a abertura do Modal
   const [showModal, setShowModal] = useState(false);
 
   const fetchProdutos = async () => {
@@ -52,8 +52,17 @@ const ProdutosTab = ({ userRole }) => {
     setShowModal(true); 
   };
 
-  const fecharModal = () => { 
+  const handleAddClick = () => {
+    limparForm();
+    setShowModal(true);
+  };
+
+  const limparForm = () => {
     setNomeProd(''); setDescricaoProd(''); setPrecoProd(''); setEstoqueProd(''); setEditandoProdId(null); 
+  };
+
+  const fecharModal = () => { 
+    limparForm();
     setShowModal(false);
   };
 
@@ -67,47 +76,21 @@ const ProdutosTab = ({ userRole }) => {
 
   return (
     <div className="fade-in">
-      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-3">
-        <h3 className="fw-bold text-dark mb-0" style={{ color: '#1e2b3c' }}>📦 Gestão de Produtos</h3>
-        <span className="badge bg-primary rounded-pill px-4 py-2 shadow-sm fs-6">
-          {produtos.length} Cadastrados
-        </span>
-      </div>
-
-      {/* FORMULÁRIO PRINCIPAL (APENAS PARA CADASTRO) */}
-      {(userRole === 'super_user' || userRole === 'adm') && (
-        <div className="card bg-white border-0 shadow-sm mb-5 rounded-4" style={{ borderTop: '5px solid #0d6efd !important' }}>
-          <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
-            <h4 className="card-title text-primary fw-bold mb-0">➕ Cadastrar Novo Produto</h4>
-          </div>
-          <div className="card-body p-4">
-            <form onSubmit={handleSubmitProduct} className="row g-4">
-              <div className="col-12 col-md-5">
-                <label className="form-label fw-medium text-secondary">Nome do Produto</label>
-                <input type="text" className="form-control form-control-lg bg-light" value={nomeProd} onChange={e => setNomeProd(e.target.value)} required placeholder="Ex: Teclado Mecânico" />
-              </div>
-              <div className="col-12 col-md-7">
-                <label className="form-label fw-medium text-secondary">Descrição Breve</label>
-                <input type="text" className="form-control form-control-lg bg-light" value={descricaoProd} onChange={e => setDescricaoProd(e.target.value)} placeholder="Detalhes do item..." />
-              </div>
-              <div className="col-6 col-md-3">
-                <label className="form-label fw-medium text-secondary">Preço (R$)</label>
-                <input type="number" step="0.01" className="form-control form-control-lg bg-light" value={precoProd} onChange={e => setPrecoProd(e.target.value)} required placeholder="0.00" />
-              </div>
-              <div className="col-6 col-md-3">
-                <label className="form-label fw-medium text-secondary">Estoque</label>
-                <input type="number" className="form-control form-control-lg bg-light" value={estoqueProd} onChange={e => setEstoqueProd(e.target.value)} required placeholder="0" />
-              </div>
-              
-              <div className="col-12 d-flex justify-content-md-end mt-4 pt-3 border-top">
-                <button type="submit" className="btn btn-lg shadow text-white fw-bold px-5 btn-primary">
-                  ✅ Confirmar Cadastro
-                </button>
-              </div>
-            </form>
-          </div>
+      
+      {/* CABEÇALHO COM BOTÃO DE ADICIONAR */}
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 border-bottom border-secondary-subtle pb-3 gap-3">
+        <div>
+          <h3 className="fw-bold text-dark mb-2" style={{ color: '#1e2b3c' }}>📦 Gestão de Produtos</h3>
+          <span className="badge bg-primary rounded-pill px-4 py-2 shadow-sm fs-6">
+            {produtos.length} Cadastrados
+          </span>
         </div>
-      )}
+        {(userRole === 'super_user' || userRole === 'adm') && (
+          <button onClick={handleAddClick} className="btn btn-lg shadow text-white fw-bold px-4 btn-primary">
+            ➕ Novo Produto
+          </button>
+        )}
+      </div>
 
       {/* ÁREA DE LISTAGEM DE PRODUTOS */}
       <div className="card bg-white border-0 shadow-sm rounded-4 overflow-hidden" style={{ borderTop: '5px solid #6c757d !important' }}>
@@ -163,11 +146,9 @@ const ProdutosTab = ({ userRole }) => {
                   <div key={produto._id} className="card shadow-sm border-0 mb-4 rounded-4">
                      <div className="card-body p-4">
                         
-                        {/* Nome e Descrição */}
                         <div className="fw-bold fs-4 mb-1" style={{ color: '#2b3a4a' }}>{produto.name}</div>
                         <div className="text-muted small mb-3 pb-3 border-bottom">{produto.description || 'Sem descrição'}</div>
                         
-                        {/* Preço e Estoque organizados lado a lado */}
                         <div className="d-flex justify-content-between align-items-center mb-4">
                           <div>
                             <span className="text-secondary fw-bold d-block small">Preço</span>
@@ -181,7 +162,6 @@ const ProdutosTab = ({ userRole }) => {
                           </div>
                         </div>
 
-                        {/* Botões de Ação */}
                         {(userRole === 'super_user' || userRole === 'adm') && (
                           <div className="d-flex flex-column gap-2 border-top pt-4">
                             <button onClick={() => handleEditProdClick(produto)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
@@ -203,7 +183,7 @@ const ProdutosTab = ({ userRole }) => {
       </div>
 
       {/* ========================================= */}
-      {/* MODAL DE EDIÇÃO (Controlado pelo React)   */}
+      {/* MODAL ÚNICO (CADASTRO E EDIÇÃO) */}
       {/* ========================================= */}
       {showModal && (
         <>
@@ -213,7 +193,9 @@ const ProdutosTab = ({ userRole }) => {
               <div className="modal-content rounded-4 border-0 shadow-lg">
                 
                 <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
-                  <h4 className="modal-title fw-bold text-primary">✏️ Editar Produto</h4>
+                  <h4 className={`modal-title fw-bold ${editandoProdId ? 'text-warning text-dark' : 'text-primary'}`}>
+                    {editandoProdId ? '✏️ Editar Produto' : '➕ Cadastrar Novo Produto'}
+                  </h4>
                   <button type="button" className="btn-close shadow-none" onClick={fecharModal}></button>
                 </div>
                 
@@ -221,27 +203,27 @@ const ProdutosTab = ({ userRole }) => {
                   <form onSubmit={handleSubmitProduct} className="row g-4">
                     <div className="col-12 col-md-5">
                       <label className="form-label fw-medium text-secondary">Nome do Produto</label>
-                      <input type="text" className="form-control form-control-lg bg-light" value={nomeProd} onChange={e => setNomeProd(e.target.value)} required />
+                      <input type="text" className="form-control form-control-lg bg-light" value={nomeProd} onChange={e => setNomeProd(e.target.value)} required placeholder="Ex: Teclado Mecânico" />
                     </div>
                     <div className="col-12 col-md-7">
                       <label className="form-label fw-medium text-secondary">Descrição</label>
-                      <input type="text" className="form-control form-control-lg bg-light" value={descricaoProd} onChange={e => setDescricaoProd(e.target.value)} />
+                      <input type="text" className="form-control form-control-lg bg-light" value={descricaoProd} onChange={e => setDescricaoProd(e.target.value)} placeholder="Detalhes do item..." />
                     </div>
                     <div className="col-6 col-md-6">
                       <label className="form-label fw-medium text-secondary">Preço (R$)</label>
-                      <input type="number" step="0.01" className="form-control form-control-lg bg-light" value={precoProd} onChange={e => setPrecoProd(e.target.value)} required />
+                      <input type="number" step="0.01" className="form-control form-control-lg bg-light" value={precoProd} onChange={e => setPrecoProd(e.target.value)} required placeholder="0.00" />
                     </div>
                     <div className="col-6 col-md-6">
                       <label className="form-label fw-medium text-secondary">Estoque</label>
-                      <input type="number" className="form-control form-control-lg bg-light" value={estoqueProd} onChange={e => setEstoqueProd(e.target.value)} required />
+                      <input type="number" className="form-control form-control-lg bg-light" value={estoqueProd} onChange={e => setEstoqueProd(e.target.value)} required placeholder="0" />
                     </div>
                     
-                    <div className="col-12 d-flex gap-3 justify-content-end mt-4 pt-3 border-top">
-                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium" onClick={fecharModal}>
-                         Cancelar
+                    <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top w-100">
+                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
+                         ❌ Cancelar
                       </button>
-                      <button type="submit" className="btn btn-lg btn-warning text-dark fw-bold px-5 shadow-sm">
-                        💾 Salvar Alterações
+                      <button type="submit" className={`btn btn-lg fw-bold px-5 shadow-sm order-1 order-md-2 ${editandoProdId ? 'btn-warning text-dark' : 'btn-primary text-white'}`}>
+                        {editandoProdId ? '💾 Salvar Alterações' : '✅ Confirmar Cadastro'}
                       </button>
                     </div>
                   </form>

@@ -18,7 +18,7 @@ const ClientesTab = ({ userRole }) => {
   const [quantidadeCompra, setQuantidadeCompra] = useState(1);
   const [carrinho, setCarrinho] = useState([]);
 
-  // Estado para controlar a abertura do Modal de Edição
+  // Estado para controlar a abertura do Modal
   const [showModal, setShowModal] = useState(false);
 
   // Busca Clientes e Produtos ao carregar a página
@@ -101,7 +101,7 @@ const ClientesTab = ({ userRole }) => {
   const totalGasto = carrinho.reduce((acc, item) => acc + item.subtotal, 0);
 
   // ==========================================
-  // SALVAR NO BANCO
+  // SALVAR NO BANCO E MODAL
   // ==========================================
 
   const handleSubmit = async (e) => {
@@ -138,9 +138,18 @@ const ClientesTab = ({ userRole }) => {
     setShowModal(true); 
   };
 
-  const fecharModal = () => { 
+  const handleAddClick = () => {
+    limparForm();
+    setShowModal(true);
+  };
+
+  const limparForm = () => {
     setNome(''); setEmail(''); setTelefone(''); setCep(''); setEndereco(''); 
     setCarrinho([]); setEditandoId(null); 
+  };
+
+  const fecharModal = () => { 
+    limparForm();
     setShowModal(false);
   };
 
@@ -155,7 +164,7 @@ const ClientesTab = ({ userRole }) => {
   const estoqueMaximoAtual = produtoSelecionado ? produtos.find(p => p._id === produtoSelecionado)?.stock : 1;
 
   // ==========================================
-  // RENDERIZAÇÃO DO FORMULÁRIO (Reutilizável)
+  // RENDERIZAÇÃO DO FORMULÁRIO (Usado no Modal)
   // ==========================================
   const renderFormulario = () => (
     <>
@@ -208,10 +217,8 @@ const ClientesTab = ({ userRole }) => {
         </div>
       </div>
 
-      {/* LISTA DE PRODUTOS ADICIONADOS HÍBRIDA (TABELA NO PC E CARDS NO MOBILE) */}
       {carrinho.length > 0 && (
         <>
-          {/* --- VERSÃO PC: TABELA TRADICIONAL --- */}
           <div className="table-responsive d-none d-md-block mb-4 rounded-3 border">
             <table className="table table-hover align-middle mb-0 bg-white">
               <thead className="table-light">
@@ -247,7 +254,6 @@ const ClientesTab = ({ userRole }) => {
             </table>
           </div>
 
-          {/* --- VERSÃO MOBILE: CARTÕES SEM ROLAGEM HORIZONTAL --- */}
           <div className="d-block d-md-none mb-4">
             <h6 className="fw-bold text-secondary mb-3">🛒 Resumo do Carrinho:</h6>
             {carrinho.map((item, index) => (
@@ -270,7 +276,6 @@ const ClientesTab = ({ userRole }) => {
                 </div>
               </div>
             ))}
-            {/* Total Mobile */}
             <div className="bg-success text-white rounded-4 p-3 shadow-sm d-flex justify-content-between align-items-center mt-2">
               <span className="fw-bold">TOTAL:</span>
               <span className="fw-bold fs-4">R$ {totalGasto.toFixed(2)}</span>
@@ -283,34 +288,21 @@ const ClientesTab = ({ userRole }) => {
 
   return (
     <div className="fade-in">
-      <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-3">
-        <h3 className="fw-bold text-dark mb-0" style={{ color: '#1e2b3c' }}>👥 Carteira de Clientes e Vendas</h3>
-        <span className="badge bg-success rounded-pill px-4 py-2 shadow-sm fs-6">
-          {clientes.length} Registrados
-        </span>
-      </div>
-
-      {/* FORMULÁRIO PRINCIPAL (APENAS CADASTRO) */}
-      {(userRole === 'super_user' || userRole === 'adm') && (
-        <div className="card bg-white border-0 shadow-sm mb-5 rounded-4" style={{ borderTop: '5px solid #198754 !important' }}>
-          <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
-            <h4 className="card-title text-success fw-bold mb-0">➕ Novo Cliente e Compra</h4>
-          </div>
-          <div className="card-body p-4">
-            <form onSubmit={handleSubmit}>
-              
-              {renderFormulario()}
-
-              {/* Botão de salvar do formulário principal */}
-              <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-5 pt-4 border-top">
-                <button type="submit" className="btn btn-lg shadow text-white fw-bold px-5 btn-success">
-                  ✅ Salvar Novo Cliente
-                </button>
-              </div>
-            </form>
-          </div>
+      
+      {/* CABEÇALHO COM BOTÃO DE ADICIONAR */}
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 border-bottom border-secondary-subtle pb-3 gap-3">
+        <div>
+          <h3 className="fw-bold text-dark mb-2" style={{ color: '#1e2b3c' }}>👥 Carteira de Clientes e Vendas</h3>
+          <span className="badge bg-success rounded-pill px-4 py-2 shadow-sm fs-6">
+            {clientes.length} Registrados
+          </span>
         </div>
-      )}
+        {(userRole === 'super_user' || userRole === 'adm') && (
+          <button onClick={handleAddClick} className="btn btn-lg shadow text-white fw-bold px-4 btn-success">
+            ➕ Novo Cliente
+          </button>
+        )}
+      </div>
 
       {/* TABELA GERAL DE CLIENTES */}
       <div className="card bg-white border-0 shadow-sm rounded-4 overflow-hidden" style={{ borderTop: '5px solid #6c757d !important' }}>
@@ -435,7 +427,7 @@ const ClientesTab = ({ userRole }) => {
       </div>
 
       {/* ========================================= */}
-      {/* MODAL DE EDIÇÃO */}
+      {/* MODAL ÚNICO (CADASTRO E EDIÇÃO) */}
       {/* ========================================= */}
       {showModal && (
         <>
@@ -445,7 +437,9 @@ const ClientesTab = ({ userRole }) => {
               <div className="modal-content rounded-4 border-0 shadow-lg" style={{ maxHeight: '90vh' }}>
                 
                 <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
-                  <h4 className="modal-title fw-bold text-warning text-dark">✏️ Editar Cliente e Compras</h4>
+                  <h4 className={`modal-title fw-bold ${editandoId ? 'text-warning text-dark' : 'text-success'}`}>
+                    {editandoId ? '✏️ Editar Cliente e Compras' : '➕ Novo Cliente e Compra'}
+                  </h4>
                   <button type="button" className="btn-close shadow-none" onClick={fecharModal}></button>
                 </div>
                 
@@ -454,13 +448,12 @@ const ClientesTab = ({ userRole }) => {
                     
                     {renderFormulario()}
                     
-                    {/* Botões do Modal: Corrigido para mobile com d-grid d-md-flex e order */}
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top w-100">
                       <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
                          ❌ Cancelar
                       </button>
-                      <button type="submit" className="btn btn-lg btn-warning text-dark fw-bold px-5 shadow-sm order-1 order-md-2">
-                        💾 Salvar Alterações
+                      <button type="submit" className={`btn btn-lg fw-bold px-5 shadow-sm order-1 order-md-2 ${editandoId ? 'btn-warning text-dark' : 'btn-success text-white'}`}>
+                        {editandoId ? '💾 Salvar Alterações' : '✅ Salvar Novo Cliente'}
                       </button>
                     </div>
 
