@@ -154,7 +154,9 @@ const ClientesTab = ({ userRole }) => {
 
   const estoqueMaximoAtual = produtoSelecionado ? produtos.find(p => p._id === produtoSelecionado)?.stock : 1;
 
-  // Renderiza o miolo do formulário
+  // ==========================================
+  // RENDERIZAÇÃO DO FORMULÁRIO (Reutilizável)
+  // ==========================================
   const renderFormulario = () => (
     <>
       <h5 className="fw-bold text-secondary mb-4 mt-2 border-bottom pb-2">1. Dados Pessoais</h5>
@@ -299,7 +301,7 @@ const ClientesTab = ({ userRole }) => {
               
               {renderFormulario()}
 
-              {/* Correção Mobile: d-grid forca botoes a empilharem inteiros na tela pequena, d-md-flex organiza lado a lado no PC */}
+              {/* Botão de salvar do formulário principal */}
               <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-5 pt-4 border-top">
                 <button type="submit" className="btn btn-lg shadow text-white fw-bold px-5 btn-success">
                   ✅ Salvar Novo Cliente
@@ -335,6 +337,18 @@ const ClientesTab = ({ userRole }) => {
                         <td className="px-4 py-3">
                           <span className="fw-bold fs-6" style={{ color: '#2b3a4a' }}>{cliente.name}</span><br/>
                           <span className="text-muted">{cliente.email}</span>
+                          
+                          {/* Mini-lista de compras do cliente no PC */}
+                          {cliente.purchases && cliente.purchases.length > 0 && (
+                            <div className="mt-2 p-2 bg-light rounded border border-secondary-subtle">
+                              <span className="fw-bold text-secondary small d-block mb-1">Última Compra:</span>
+                              <ul className="list-unstyled mb-0 small text-dark">
+                                {cliente.purchases.map((p, idx) => (
+                                  <li key={idx}>• {p.quantity}x {p.productName} <span className="text-success fw-medium">(R$ {Number(p.price).toFixed(2)})</span></li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-muted">{cliente.phone || '-'}</td>
                         <td className="px-4 py-3">
@@ -362,22 +376,36 @@ const ClientesTab = ({ userRole }) => {
                 </table>
               </div>
 
-              {/* --- VERSÃO 2: CARTÕES --- */}
+              {/* --- VERSÃO 2: CARTÕES (Para Celular e iPads em retrato estreito) --- */}
               <div className="d-block d-md-none p-3 bg-light">
                 {clientes.map(cliente => (
                   <div key={cliente._id} className="card shadow-sm border-0 mb-4 rounded-4">
                     <div className="card-body p-4">
-                      <div className="d-flex justify-content-between align-items-center mb-3">
+                      <div className="d-flex justify-content-between align-items-center mb-1">
                         <span className="fw-bold fs-5" style={{ color: '#2b3a4a' }}>{cliente.name}</span>
                       </div>
-                      <div className="mb-2">
-                        <span className="text-secondary fw-bold">E-mail: </span>
-                        <span className="text-muted">{cliente.email}</span>
+                      <div className="mb-2 text-muted small border-bottom pb-2">{cliente.email}</div>
+                      
+                      <div className="mb-2 mt-3">
+                        <span className="text-secondary fw-bold small">Contato: </span>
+                        <span className="text-dark small">{cliente.phone || '-'}</span>
                       </div>
-                      <div className="mb-2">
-                        <span className="text-secondary fw-bold">Contato: </span>
-                        <span className="text-muted">{cliente.phone || '-'}</span>
-                      </div>
+                      
+                      {/* Mini-lista de compras do cliente no Mobile */}
+                      {cliente.purchases && cliente.purchases.length > 0 && (
+                        <div className="mt-3 p-3 bg-white rounded-3 border">
+                          <span className="text-secondary fw-bold small d-block mb-2">🛒 Resumo da Compra:</span>
+                          <ul className="list-unstyled mb-0 small">
+                            {cliente.purchases.map((p, idx) => (
+                              <li key={idx} className="mb-1 border-bottom pb-1 last-child-no-border">
+                                <span className="fw-bold">{p.quantity}x</span> {p.productName} <br/>
+                                <span className="text-success fw-medium">R$ {Number(p.price).toFixed(2)} un.</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
                       <div className="d-flex justify-content-between align-items-center mb-4 mt-3 bg-light p-3 rounded-3 border">
                         <span className="text-secondary fw-bold">Total Gasto: </span>
                         {cliente.totalSpent > 0 ? (
@@ -426,12 +454,10 @@ const ClientesTab = ({ userRole }) => {
                     
                     {renderFormulario()}
                     
-                    {/* Correção Mobile dos Botões do Modal: 
-                        No celular, o "Salvar" fica em cima e grandão, o "Cancelar" fica embaixo.
-                        No PC, eles ficam elegantes lado a lado. */}
-                    <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top">
+                    {/* Botões do Modal: Corrigido para mobile com d-grid d-md-flex e order */}
+                    <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top w-100">
                       <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
-                         Cancelar
+                         ❌ Cancelar
                       </button>
                       <button type="submit" className="btn btn-lg btn-warning text-dark fw-bold px-5 shadow-sm order-1 order-md-2">
                         💾 Salvar Alterações
