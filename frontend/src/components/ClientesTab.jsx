@@ -18,6 +18,9 @@ const ClientesTab = ({ userRole }) => {
   const [quantidadeCompra, setQuantidadeCompra] = useState(1);
   const [carrinho, setCarrinho] = useState([]);
 
+  // NOVO: Estado para controlar a abertura do Modal de Edição
+  const [showModal, setShowModal] = useState(false);
+
   // Busca Clientes e Produtos ao carregar a página
   const fetchData = async () => {
     try {
@@ -116,12 +119,14 @@ const ClientesTab = ({ userRole }) => {
 
       if (editandoId) {
         await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/clients/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        alert('Dados do cliente atualizados com sucesso!');
       } else {
         await axios.post('https://gestaopro-api-ovgf.onrender.com/api/clients', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        alert('Cliente e compra registrados com sucesso!');
       }
       
-      limparForm(); fetchData();
-      alert('Cliente e compra registrados com sucesso!');
+      fecharModal(); 
+      fetchData();
     } catch (error) { alert('Erro ao salvar cliente.'); }
   };
 
@@ -130,13 +135,13 @@ const ClientesTab = ({ userRole }) => {
     setTelefone(cliente.phone || ''); setCep(cliente.cep || ''); setEndereco(cliente.address || ''); 
     setCarrinho(cliente.purchases || []); 
     setEditandoId(cliente._id);
-    // Rolagem suave para o topo para facilitar no iPad
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setShowModal(true); // Abre o Modal em vez de rolar a tela
   };
 
-  const limparForm = () => { 
+  const fecharModal = () => { 
     setNome(''); setEmail(''); setTelefone(''); setCep(''); setEndereco(''); 
     setCarrinho([]); setEditandoId(null); 
+    setShowModal(false);
   };
 
   const handleDelete = async (id) => {
@@ -149,6 +154,100 @@ const ClientesTab = ({ userRole }) => {
 
   const estoqueMaximoAtual = produtoSelecionado ? produtos.find(p => p._id === produtoSelecionado)?.stock : 1;
 
+  // Renderiza o miolo do formulário (para reutilizar no modal e na tela principal sem repetir 200 linhas de código)
+  const renderFormulario = () => (
+    <>
+      {/* SESSÃO 1: DADOS DO CLIENTE */}
+      <h5 className="fw-bold text-secondary mb-4 mt-2 border-bottom pb-2">1. Dados Pessoais</h5>
+      <div className="row g-4 mb-5">
+        <div className="col-12 col-md-4">
+          <label className="form-label fw-medium text-secondary">Nome Completo</label>
+          <input type="text" className="form-control form-control-lg bg-light" value={nome} onChange={e => setNome(e.target.value)} required />
+        </div>
+        <div className="col-12 col-md-4">
+          <label className="form-label fw-medium text-secondary">E-mail</label>
+          <input type="email" className="form-control form-control-lg bg-light" value={email} onChange={e => setEmail(e.target.value)} required />
+        </div>
+        <div className="col-12 col-md-4">
+          <label className="form-label fw-medium text-secondary">WhatsApp / Celular</label>
+          <input type="text" className="form-control form-control-lg bg-light" value={telefone} onChange={handleTelefoneChange} placeholder="(00) 00000-0000" />
+        </div>
+        
+        <div className="col-12 col-md-3">
+          <label className="form-label fw-medium text-secondary">CEP</label>
+          <input type="text" className="form-control form-control-lg bg-light border-primary" value={cep} onChange={handleCepChange} onBlur={buscarEnderecoPorCep} placeholder="00000-000" />
+        </div>
+        <div className="col-12 col-md-9">
+          <label className="form-label fw-medium text-secondary">Endereço Completo</label>
+          <input type="text" className="form-control form-control-lg bg-light" value={endereco} onChange={e => setEndereco(e.target.value)} placeholder="Preenchido automaticamente pelo CEP..." />
+        </div>
+      </div>
+
+      {/* SESSÃO 2: CARRINHO DE COMPRAS */}
+      <h5 className="fw-bold text-secondary mb-4 border-bottom pb-2">2. Registro de Compras (Opcional)</h5>
+      <div className="row g-3 align-items-end p-4 rounded-4 bg-light border border-secondary-subtle mb-4 shadow-sm">
+        <div className="col-12 col-md-6">
+          <label className="form-label fw-bold text-dark">Selecione o Produto</label>
+          <select className="form-select form-select-lg border-secondary" value={produtoSelecionado} onChange={e => setProdutoSelecionado(e.target.value)}>
+            <option value="">-- Escolha um produto --</option>
+            {produtos.map(p => (
+              <option key={p._id} value={p._id} disabled={p.stock === 0}>
+                {p.name} (R$ {p.price}) - Estoque: {p.stock} {p.stock === 0 && '❌ Esgotado'}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="col-6 col-md-3">
+          <label className="form-label fw-bold text-dark">Quantidade</label>
+          <input type="number" min="1" max={estoqueMaximoAtual} className="form-control form-control-lg border-secondary text-center" value={quantidadeCompra} onChange={e => setQuantidadeCompra(e.target.value)} disabled={!produtoSelecionado} />
+        </div>
+        <div className="col-6 col-md-3">
+          <button type="button" className="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onClick={adicionarAoCarrinho} disabled={!produtoSelecionado}>
+            ➕ Adicionar
+          </button>
+        </div>
+      </div>
+
+      {/* LISTA DE PRODUTOS ADICIONADOS */}
+      {carrinho.length > 0 && (
+        <div className="table-responsive mb-4 rounded-3 border">
+          <table className="table table-hover align-middle mb-0 bg-white">
+            <thead className="table-light">
+              <tr>
+                <th className="py-3 px-4">Produto</th>
+                <th className="py-3 text-center">Qtd.</th>
+                <th className="py-3">Preço Un.</th>
+                <th className="py-3">Subtotal</th>
+                <th className="py-3 text-center">Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {carrinho.map((item, index) => (
+                <tr key={index}>
+                  <td className="px-4 fw-medium text-dark">{item.productName}</td>
+                  <td className="text-center fs-5">{item.quantity}</td>
+                  <td>R$ {item.price.toFixed(2)}</td>
+                  <td className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</td>
+                  <td className="text-center">
+                    <button type="button" className="btn btn-outline-danger p-2 rounded-circle" onClick={() => removerDoCarrinho(index)} title="Remover item">
+                      🗑️
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot className="table-success">
+              <tr>
+                <td colSpan="3" className="text-end fw-bold py-3 fs-5">TOTAL DA COMPRA:</td>
+                <td colSpan="2" className="fw-bold fs-4 text-success py-3">R$ {totalGasto.toFixed(2)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="fade-in">
       <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-3">
@@ -158,121 +257,23 @@ const ClientesTab = ({ userRole }) => {
         </span>
       </div>
 
+      {/* FORMULÁRIO PRINCIPAL (AGORA APENAS PARA CADASTRO) */}
       {(userRole === 'super_user' || userRole === 'adm') && (
         <div className="card bg-white border-0 shadow-sm mb-5 rounded-4" style={{ borderTop: '5px solid #198754 !important' }}>
           <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
-            <h4 className="card-title text-success fw-bold mb-0">
-              {editandoId ? '✏️ Editar Cliente e Compras' : '➕ Novo Cliente e Compra'}
-            </h4>
+            <h4 className="card-title text-success fw-bold mb-0">➕ Novo Cliente e Compra</h4>
           </div>
           <div className="card-body p-4">
-            
             <form onSubmit={handleSubmit}>
               
-              {/* SESSÃO 1: DADOS DO CLIENTE */}
-              <h5 className="fw-bold text-secondary mb-4 mt-2 border-bottom pb-2">1. Dados Pessoais</h5>
-              <div className="row g-4 mb-5">
-                <div className="col-12 col-md-4">
-                  <label className="form-label fw-medium text-secondary">Nome Completo</label>
-                  <input type="text" className="form-control form-control-lg bg-light" value={nome} onChange={e => setNome(e.target.value)} required />
-                </div>
-                <div className="col-12 col-md-4">
-                  <label className="form-label fw-medium text-secondary">E-mail</label>
-                  <input type="email" className="form-control form-control-lg bg-light" value={email} onChange={e => setEmail(e.target.value)} required />
-                </div>
-                <div className="col-12 col-md-4">
-                  <label className="form-label fw-medium text-secondary">WhatsApp / Celular</label>
-                  <input type="text" className="form-control form-control-lg bg-light" value={telefone} onChange={handleTelefoneChange} placeholder="(00) 00000-0000" />
-                </div>
-                
-                <div className="col-12 col-md-3">
-                  <label className="form-label fw-medium text-secondary">CEP</label>
-                  <input type="text" className="form-control form-control-lg bg-light border-primary" value={cep} onChange={handleCepChange} onBlur={buscarEnderecoPorCep} placeholder="00000-000" />
-                </div>
-                <div className="col-12 col-md-9">
-                  <label className="form-label fw-medium text-secondary">Endereço Completo</label>
-                  <input type="text" className="form-control form-control-lg bg-light" value={endereco} onChange={e => setEndereco(e.target.value)} placeholder="Preenchido automaticamente pelo CEP..." />
-                </div>
-              </div>
+              {renderFormulario()}
 
-              {/* SESSÃO 2: CARRINHO DE COMPRAS */}
-              <h5 className="fw-bold text-secondary mb-4 border-bottom pb-2">2. Registro de Compras (Opcional)</h5>
-              <div className="row g-3 align-items-end p-4 rounded-4 bg-light border border-secondary-subtle mb-4 shadow-sm">
-                <div className="col-12 col-md-6">
-                  <label className="form-label fw-bold text-dark">Selecione o Produto</label>
-                  <select className="form-select form-select-lg border-secondary" value={produtoSelecionado} onChange={e => setProdutoSelecionado(e.target.value)}>
-                    <option value="">-- Escolha um produto --</option>
-                    {produtos.map(p => (
-                      <option key={p._id} value={p._id} disabled={p.stock === 0}>
-                        {p.name} (R$ {p.price}) - Estoque: {p.stock} {p.stock === 0 && '❌ Esgotado'}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-6 col-md-3">
-                  <label className="form-label fw-bold text-dark">Quantidade</label>
-                  <input type="number" min="1" max={estoqueMaximoAtual} className="form-control form-control-lg border-secondary text-center" value={quantidadeCompra} onChange={e => setQuantidadeCompra(e.target.value)} disabled={!produtoSelecionado} />
-                </div>
-                <div className="col-6 col-md-3">
-                  {/* Botão de adicionar maior e mais clicável */}
-                  <button type="button" className="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onClick={adicionarAoCarrinho} disabled={!produtoSelecionado}>
-                    ➕ Adicionar
-                  </button>
-                </div>
-              </div>
-
-              {/* LISTA DE PRODUTOS ADICIONADOS */}
-              {carrinho.length > 0 && (
-                <div className="table-responsive mb-4 rounded-3 border">
-                  <table className="table table-hover align-middle mb-0 bg-white">
-                    <thead className="table-light">
-                      <tr>
-                        <th className="py-3 px-4">Produto</th>
-                        <th className="py-3 text-center">Qtd.</th>
-                        <th className="py-3">Preço Un.</th>
-                        <th className="py-3">Subtotal</th>
-                        <th className="py-3 text-center">Ação</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {carrinho.map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-4 fw-medium text-dark">{item.productName}</td>
-                          <td className="text-center fs-5">{item.quantity}</td>
-                          <td>R$ {item.price.toFixed(2)}</td>
-                          <td className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</td>
-                          <td className="text-center">
-                            {/* Botão de remover maior para facilitar o toque no iPad */}
-                            <button type="button" className="btn btn-outline-danger p-2 rounded-circle" onClick={() => removerDoCarrinho(index)} title="Remover item">
-                              🗑️
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot className="table-success">
-                      <tr>
-                        <td colSpan="3" className="text-end fw-bold py-3 fs-5">TOTAL DA COMPRA:</td>
-                        <td colSpan="2" className="fw-bold fs-4 text-success py-3">R$ {totalGasto.toFixed(2)}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              )}
-
-              {/* BOTÕES DE SALVAR - Destaque Principal */}
               <div className="col-12 d-flex gap-3 justify-content-md-end mt-5 pt-4 border-top">
-                {editandoId && (
-                  <button type="button" className="btn btn-lg btn-outline-secondary shadow-sm px-4 fw-medium" onClick={limparForm}>
-                    ❌ Cancelar
-                  </button>
-                )}
-                <button type="submit" className={`btn btn-lg shadow text-white fw-bold px-5 ${editandoId ? 'btn-warning text-dark' : 'btn-success'}`}>
-                  {editandoId ? '✏️ Atualizar Registro' : '✅ Salvar Cliente e Compras'}
+                <button type="submit" className="btn btn-lg shadow text-white fw-bold px-5 btn-success">
+                  ✅ Salvar Novo Cliente
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       )}
@@ -293,7 +294,7 @@ const ClientesTab = ({ userRole }) => {
                       <th className="px-4 py-4 text-secondary border-bottom">Cliente</th>
                       <th className="px-4 py-4 text-secondary border-bottom">Contato</th>
                       <th className="px-4 py-4 text-secondary border-bottom">Total Gasto</th>
-                      {(userRole === 'super_user' || userRole === 'adm') && <th className="px-4 py-4 text-secondary border-bottom text-end">Ações</th>}
+                      {(userRole === 'super_user' || userRole === 'adm') && <th className="px-4 py-4 text-secondary border-bottom text-center">Ações</th>}
                     </tr>
                   </thead>
                   <tbody className="border-top-0">
@@ -312,14 +313,16 @@ const ClientesTab = ({ userRole }) => {
                           )}
                         </td>
                         {(userRole === 'super_user' || userRole === 'adm') && (
-                          <td className="px-4 py-3 text-end">
-                            {/* Botões de tabela com tamanho padrão, sem btn-sm, mais fáceis de tocar */}
-                            <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary px-3 py-2 me-2 fw-medium shadow-sm rounded-3">
-                              ✏️ Editar
-                            </button>
-                            <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger px-3 py-2 fw-medium shadow-sm rounded-3">
-                              🗑️ Excluir
-                            </button>
+                          <td className="px-4 py-3">
+                            {/* Botões empilhados verticalmente e com mesma largura no PC para economizar espaço horizontal */}
+                            <div className="d-flex flex-column gap-2 mx-auto" style={{ maxWidth: '110px' }}>
+                              <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-1 w-100 fw-medium shadow-sm rounded-3">
+                                ✏️ Editar
+                              </button>
+                              <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-1 w-100 fw-medium shadow-sm rounded-3">
+                                🗑️ Excluir
+                              </button>
+                            </div>
                           </td>
                         )}
                       </tr>
@@ -354,11 +357,11 @@ const ClientesTab = ({ userRole }) => {
                       </div>
                       
                       {(userRole === 'super_user' || userRole === 'adm') && (
-                        <div className="d-flex gap-2 border-top pt-4">
-                          <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-2 w-50 fw-bold shadow-sm rounded-3">
+                        <div className="d-flex flex-column gap-2 border-top pt-4 mt-2">
+                          <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
                             ✏️ Editar
                           </button>
-                          <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-2 w-50 fw-bold shadow-sm rounded-3">
+                          <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-2 w-100 fw-bold shadow-sm rounded-3">
                             🗑️ Excluir
                           </button>
                         </div>
@@ -371,6 +374,50 @@ const ClientesTab = ({ userRole }) => {
           )}
         </div>
       </div>
+
+      {/* ========================================= */}
+      {/* MODAL DE EDIÇÃO (Controlado pelo React)   */}
+      {/* ========================================= */}
+      {showModal && (
+        <>
+          {/* Fundo escuro transparente (Backdrop) */}
+          <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
+          
+          {/* O Modal (Usando modal-dialog-scrollable para telas longas) */}
+          <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1050 }} aria-hidden="true" onClick={fecharModal}>
+            <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" onClick={e => e.stopPropagation()}>
+              <div className="modal-content rounded-4 border-0 shadow-lg" style={{ maxHeight: '90vh' }}>
+                
+                <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                  <h4 className="modal-title fw-bold text-warning text-dark">✏️ Editar Cliente e Compras</h4>
+                  <button type="button" className="btn-close shadow-none" onClick={fecharModal}></button>
+                </div>
+                
+                <div className="modal-body p-4 pt-2">
+                  <form onSubmit={handleSubmit}>
+                    
+                    {/* Renderiza todo aquele form gigante aqui dentro */}
+                    {renderFormulario()}
+                    
+                    {/* Botões isolados no rodapé do formulário do Modal */}
+                    <div className="col-12 d-flex gap-3 justify-content-end mt-4 pt-3 border-top">
+                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium" onClick={fecharModal}>
+                         Cancelar
+                      </button>
+                      <button type="submit" className="btn btn-lg btn-warning text-dark fw-bold px-5 shadow-sm">
+                        💾 Salvar Alterações
+                      </button>
+                    </div>
+
+                  </form>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
     </div>
   );
 };
