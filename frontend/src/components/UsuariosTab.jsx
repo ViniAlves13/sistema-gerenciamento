@@ -82,13 +82,13 @@ const UsuariosTab = ({ loggedUserId }) => {
       {/* CABEÇALHO */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 border-bottom border-secondary-subtle pb-3 gap-3">
         <div>
-          <h3 className="fw-bold text-dark mb-2" style={{ color: '#1e2b3c' }}>🛡️ Controle de Acessos</h3>
+          <h3 className="fw-bold text-dark mb-2" style={{ color: '#1e2b3c' }}>Controle de Acessos</h3>
           <span className="badge rounded-pill px-4 py-2 shadow-sm fs-6" style={{ backgroundColor: '#6f42c1' }}>
             {usuarios.length} Contas
           </span>
         </div>
         <button onClick={handleAddClick} className="btn btn-lg shadow text-white fw-bold px-4" style={{ backgroundColor: '#6f42c1' }}>
-          ➕ Novo Usuário
+        Novo Usuário
         </button>
       </div>
 
@@ -116,13 +116,13 @@ const UsuariosTab = ({ loggedUserId }) => {
                   
                   <div className="d-flex gap-2 border-top pt-4">
                     <button onClick={() => handleEditClick(user)} className="btn btn-outline-primary py-2 w-50 fw-bold shadow-sm rounded-3">
-                      ✏️ Editar
+                    Editar
                     </button>
                     <button 
                       onClick={() => handleDelete(user._id)} 
                       className={`btn btn-outline-danger py-2 w-50 fw-bold shadow-sm rounded-3 ${user._id === loggedUserId ? 'disabled opacity-50' : ''}`}
                     >
-                      🗑️ Revogar
+                    Revogar
                     </button>
                   </div>
 
@@ -143,7 +143,7 @@ const UsuariosTab = ({ loggedUserId }) => {
                 
                 <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
                   <h4 className="modal-title fw-bold" style={{ color: '#6f42c1' }}>
-                    {editandoId ? '✏️ Editar Acesso' : '➕ Conceder Novo Acesso'}
+                    {editandoId ? 'Editar Acesso' : 'Conceder Novo Acesso'}
                   </h4>
                   <button type="button" className="btn-close shadow-none" onClick={fecharModal}></button>
                 </div>
@@ -173,10 +173,10 @@ const UsuariosTab = ({ loggedUserId }) => {
                     
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-5 pt-4 border-top w-100">
                       <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
-                        ❌ Cancelar
+                      Cancelar
                       </button>
                       <button type="submit" className={`btn btn-lg shadow fw-bold px-5 order-1 order-md-2 ${editandoId ? 'btn-warning text-dark' : 'text-white'}`} style={{ backgroundColor: editandoId ? '' : '#6f42c1' }}>
-                        {editandoId ? '💾 Atualizar Permissões' : '✅ Criar Credencial'}
+                        {editandoId ? 'Atualizar Permissões' : 'Criar Credencial'}
                       </button>
                     </div>
                   </form>

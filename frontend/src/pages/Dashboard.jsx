@@ -11,7 +11,11 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('produtos');
   const [userRole, setUserRole] = useState('');
   const [loggedUserId, setLoggedUserId] = useState('');
+  
+  // Estados de controle do Menu
   const [menuMobileAberto, setMenuMobileAberto] = useState(false);
+  const [menuColapsado, setMenuColapsado] = useState(false); // NOVO: Controla se o menu PC está encolhido
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,69 +39,116 @@ const Dashboard = () => {
     setMenuMobileAberto(false);
   };
 
+  // Define a largura baseada no estado (Mobile aberto = 280px, PC Colapsado = 85px, PC Aberto = 280px)
+  const larguraMenu = menuMobileAberto ? '280px' : (menuColapsado ? '85px' : '280px');
+
   return (
     <div className="d-flex vh-100" style={{ backgroundColor: '#eef2f5', fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
       
-      {/* MENU LATERAL (Azul Marinho / Slate) - TEXTOS MAIS VISÍVEIS */}
+      {/* ========================================== */}
+      {/* MENU LATERAL RETRÁTIL                      */}
+      {/* ========================================== */}
       <div 
-        className={`p-3 d-flex flex-column text-white shadow-lg ${menuMobileAberto ? 'position-fixed h-100 z-3 w-75' : 'd-none d-md-flex'}`} 
-        style={{ width: '280px', backgroundColor: '#1e2b3c', transition: '0.3s' }}
+        className={`p-3 d-flex flex-column text-white shadow-lg ${menuMobileAberto ? 'position-fixed h-100 z-3' : 'd-none d-md-flex'}`} 
+        style={{ width: larguraMenu, backgroundColor: '#1e2b3c', transition: 'width 0.3s ease' }}
       >
-        <div className="d-flex justify-content-between align-items-center mb-4 mt-2 me-md-auto text-decoration-none w-100">
-          <span className="fs-3 fw-bold text-info">OMNIGESTOR</span>
+        {/* CABEÇALHO DO MENU E LOGO */}
+        <div className={`d-flex ${menuColapsado ? 'justify-content-center' : 'justify-content-between'} align-items-center mb-4 mt-2 w-100`}>
+          <div className="d-flex align-items-center gap-2 overflow-hidden" style={{ whiteSpace: 'nowrap' }}>
+            {/* LOGO ADICIONADA AQUI 👇 */}
+            <img src="/logo-omnigestor.png" alt="Logo" style={{ height: '35px', width: '35px', objectFit: 'contain' }} />
+            
+            {/* Esconde o texto se estiver colapsado */}
+            {!menuColapsado && <span className="fs-4 fw-bold text-info fade-in">OMNIGESTOR</span>}
+          </div>
+          
+          {/* Botão de Fechar no Mobile */}
           <button className="btn btn-close btn-close-white d-md-none" onClick={() => setMenuMobileAberto(false)}></button>
+          
+          {/* Botão de Encolher no PC */}
+          <button 
+            className="btn btn-sm text-white border-0 d-none d-md-block opacity-75 hover-opacity-100" 
+            onClick={() => setMenuColapsado(!menuColapsado)}
+            title={menuColapsado ? "Expandir Menu" : "Recolher Menu"}
+          >
+            {menuColapsado ? '▶' : '◀'}
+          </button>
         </div>
         
+        {/* LINKS DO MENU */}
         <ul className="nav nav-pills flex-column mb-auto gap-2">
           <li className="nav-item">
             <button 
-              className={`nav-link text-start w-100 py-2 fs-6 ${activeTab === 'produtos' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold hover-bg-light'}`} 
-              onClick={() => trocarAba('produtos')}
+              className={`nav-link text-start w-100 py-2 fs-6 d-flex align-items-center gap-3 ${menuColapsado ? 'justify-content-center px-0' : ''} ${activeTab === 'produtos' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold hover-bg-light'}`} 
+              onClick={() => trocarAba('produtos')} title="Inventário e Produtos"
             >
-              Inventário e Produtos
+              <span className="fs-5">📦</span>
+              {!menuColapsado && <span className="fade-in">Inventário e Produtos</span>}
             </button>
           </li>
           <li className="nav-item">
             <button 
-              className={`nav-link text-start w-100 py-2 fs-6 ${activeTab === 'clientes' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold'}`} 
-              onClick={() => trocarAba('clientes')}
+              className={`nav-link text-start w-100 py-2 fs-6 d-flex align-items-center gap-3 ${menuColapsado ? 'justify-content-center px-0' : ''} ${activeTab === 'clientes' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold hover-bg-light'}`} 
+              onClick={() => trocarAba('clientes')} title="Carteira de Clientes"
             >
-              Carteira de Clientes
+              <span className="fs-5">👥</span>
+              {!menuColapsado && <span className="fade-in">Carteira de Clientes</span>}
             </button>
           </li>
           {userRole === 'super_user' && (
             <li className="nav-item">
               <button 
-                className={`nav-link text-start w-100 py-2 fs-6 ${activeTab === 'usuarios' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold'}`} 
-                onClick={() => trocarAba('usuarios')}
+                className={`nav-link text-start w-100 py-2 fs-6 d-flex align-items-center gap-3 ${menuColapsado ? 'justify-content-center px-0' : ''} ${activeTab === 'usuarios' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold hover-bg-light'}`} 
+                onClick={() => trocarAba('usuarios')} title="Controle de Usuários"
               >
-                Controle de Usuários
+                <span className="fs-5">🛡️</span>
+                {!menuColapsado && <span className="fade-in">Controle de Usuários</span>}
               </button>
             </li>
           )}
         </ul>
         
         <hr className="text-secondary opacity-75 mt-4" />
+        
+        {/* RODAPÉ DO MENU (Perfil e Sair) */}
         <div className="d-flex flex-column gap-3 mb-2">
-          <div className="p-2 rounded text-center border border-secondary border-opacity-25" style={{ backgroundColor: '#141d29' }}>
-            <small className="text-light d-block mb-1">Nível de Acesso</small>
-            <span className="fw-bold text-info text-uppercase fs-6">{userRole}</span>
-          </div>
-          <button className={`btn w-100 py-2 fw-bold ${activeTab === 'perfil' ? 'btn-info text-dark shadow-sm' : 'btn-outline-light'}`} onClick={() => trocarAba('perfil')}>
-          Minha Conta
+          {/* Badge de Nível de Acesso */}
+          {!menuColapsado && (
+            <div className="p-2 rounded text-center border border-secondary border-opacity-25 fade-in" style={{ backgroundColor: '#141d29' }}>
+              <small className="text-light d-block mb-1">Nível de Acesso</small>
+              <span className="fw-bold text-info text-uppercase fs-6">{userRole}</span>
+            </div>
+          )}
+
+          <button 
+            className={`btn w-100 py-2 fw-bold d-flex align-items-center gap-3 ${menuColapsado ? 'justify-content-center px-0' : ''} ${activeTab === 'perfil' ? 'btn-info text-dark shadow-sm' : 'btn-outline-light'}`} 
+            onClick={() => trocarAba('perfil')} title="Minha Conta"
+          >
+            <span className="fs-5">⚙️</span>
+            {!menuColapsado && <span className="fade-in">Minha Conta</span>}
           </button>
-          <button className="btn btn-danger w-100 py-2 fw-bold shadow-sm" onClick={handleLogout}>
-            Sair do Sistema
+
+          <button 
+            className={`btn btn-danger w-100 py-2 fw-bold shadow-sm d-flex align-items-center gap-3 ${menuColapsado ? 'justify-content-center px-0' : ''}`} 
+            onClick={handleLogout} title="Sair do Sistema"
+          >
+            <span className="fs-5">🚪</span>
+            {!menuColapsado && <span className="fade-in">Sair</span>}
           </button>
         </div>
       </div>
 
-      {/* ÁREA PRINCIPAL */}
+      {/* ========================================== */}
+      {/* ÁREA PRINCIPAL                             */}
+      {/* ========================================== */}
       <div className="flex-grow-1 d-flex flex-column overflow-hidden">
         
         {/* NAVBAR MOBILE */}
         <div className="d-md-none p-3 d-flex justify-content-between align-items-center shadow-sm" style={{ backgroundColor: '#1e2b3c' }}>
-          <span className="fs-5 fw-bold text-info">OMNIGESTOR</span>
+          <div className="d-flex align-items-center gap-2">
+            <img src="/logo-omnigestor.png" alt="Logo" style={{ height: '30px' }} />
+            <span className="fs-5 fw-bold text-info">OMNIGESTOR</span>
+          </div>
           <button className="btn btn-outline-light btn-sm fw-bold" onClick={() => setMenuMobileAberto(true)}>☰ Menu</button>
         </div>
 

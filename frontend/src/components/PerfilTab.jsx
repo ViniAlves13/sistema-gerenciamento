@@ -59,7 +59,7 @@ const PerfilTab = () => {
   return (
     <div className="fade-in">
       <div className="d-flex justify-content-between align-items-end mb-4 border-bottom border-secondary-subtle pb-3">
-        <h3 className="fw-bold text-dark mb-0" style={{ color: '#1e2b3c' }}>👤 Configurações da Conta</h3>
+        <h3 className="fw-bold text-dark mb-0" style={{ color: '#1e2b3c' }}>Configurações da Conta</h3>
       </div>
 
       <div className="row justify-content-center">
@@ -109,7 +109,7 @@ const PerfilTab = () => {
                 
                 <div className="col-12 mt-5">
                   <div className="p-4 rounded-4 bg-light border border-secondary-subtle shadow-sm">
-                    <label className="form-label fw-bold text-dark mb-1 fs-5">🔐 Alterar Senha</label>
+                    <label className="form-label fw-bold text-dark mb-1 fs-5">Alterar Senha</label>
                     <p className="text-muted mb-3">Preencha apenas se quiser trocar a sua senha atual. Caso contrário, deixe em branco.</p>
                     <input type="password" className="form-control form-control-lg border-secondary" value={senha} onChange={e => setSenha(e.target.value)} placeholder="Nova senha (mínimo 6 caracteres)" />
                   </div>
@@ -117,7 +117,7 @@ const PerfilTab = () => {
                 
                 <div className="col-12 d-flex justify-content-center justify-content-md-end mt-5 pt-3 border-top">
                   <button type="submit" className="btn btn-lg btn-info text-dark fw-bold px-5 shadow w-100 w-md-auto">
-                    💾 Salvar Alterações
+                  Salvar Alterações
                   </button>
                 </div>
               </form>
