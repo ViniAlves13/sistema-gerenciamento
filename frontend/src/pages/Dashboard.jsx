@@ -59,7 +59,7 @@ const Dashboard = () => {
             {/* LOGO FORMATADA (Moldura Branca) */}
             <div className="bg-white rounded-3 d-flex justify-content-center align-items-center shadow-sm flex-shrink-0" style={{ width: '42px', height: '42px', padding: '4px' }}>
               <img 
-                src="./assets/logoOmniGestor.jpg" 
+                src="./assets/logoOmniGestor.png" 
                 alt="Logo Omnigestor" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} 
               />
