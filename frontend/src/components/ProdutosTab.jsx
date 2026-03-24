@@ -80,7 +80,7 @@ const ProdutosTab = ({ userRole }) => {
       {/* CABEÇALHO COM BOTÃO DE ADICIONAR */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 border-bottom border-secondary-subtle pb-3 gap-3">
         <div>
-          <h3 className="fw-bold text-dark mb-2" style={{ color: '#1e2b3c' }}>📦 Gestão de Produtos</h3>
+          <h3 className="fw-bold text-dark mb-2" style={{ color: '#1e2b3c' }}>Registro de Produtos</h3>
           <span className="badge bg-primary rounded-pill px-4 py-2 shadow-sm fs-6">
             {produtos.length} Cadastrados
           </span>

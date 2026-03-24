@@ -14,7 +14,7 @@ const Dashboard = () => {
   
   // Estados de controle do Menu
   const [menuMobileAberto, setMenuMobileAberto] = useState(false);
-  const [menuColapsado, setMenuColapsado] = useState(false); // NOVO: Controla se o menu PC está encolhido
+  const [menuColapsado, setMenuColapsado] = useState(false);
 
   const navigate = useNavigate();
 
@@ -39,7 +39,7 @@ const Dashboard = () => {
     setMenuMobileAberto(false);
   };
 
-  // Define a largura baseada no estado (Mobile aberto = 280px, PC Colapsado = 85px, PC Aberto = 280px)
+  // Define a largura baseada no estado
   const larguraMenu = menuMobileAberto ? '280px' : (menuColapsado ? '85px' : '280px');
 
   return (
@@ -55,19 +55,26 @@ const Dashboard = () => {
         {/* CABEÇALHO DO MENU E LOGO */}
         <div className={`d-flex ${menuColapsado ? 'justify-content-center' : 'justify-content-between'} align-items-center mb-4 mt-2 w-100`}>
           <div className="d-flex align-items-center gap-2 overflow-hidden" style={{ whiteSpace: 'nowrap' }}>
-            {/* LOGO ADICIONADA AQUI 👇 */}
-            <img src="/logo-omnigestor.png" alt="Logo" style={{ height: '35px', width: '35px', objectFit: 'contain' }} />
+            
+            {/* LOGO FORMATADA (Moldura Branca) */}
+            <div className="bg-white rounded-3 d-flex justify-content-center align-items-center shadow-sm flex-shrink-0" style={{ width: '42px', height: '42px', padding: '4px' }}>
+              <img 
+                src="./assets/logoOmniGestor.jpg" 
+                alt="Logo Omnigestor" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} 
+              />
+            </div>
             
             {/* Esconde o texto se estiver colapsado */}
-            {!menuColapsado && <span className="fs-4 fw-bold text-info fade-in">OMNIGESTOR</span>}
+            {!menuColapsado && <span className="fs-4 fw-bold text-info fade-in" style={{ letterSpacing: '0.5px' }}>OMNIGESTOR</span>}
           </div>
           
           {/* Botão de Fechar no Mobile */}
-          <button className="btn btn-close btn-close-white d-md-none" onClick={() => setMenuMobileAberto(false)}></button>
+          <button className="btn btn-close btn-close-white d-md-none flex-shrink-0" onClick={() => setMenuMobileAberto(false)}></button>
           
           {/* Botão de Encolher no PC */}
           <button 
-            className="btn btn-sm text-white border-0 d-none d-md-block opacity-75 hover-opacity-100" 
+            className="btn btn-sm text-white border-0 d-none d-md-block opacity-75 hover-opacity-100 flex-shrink-0 ms-2" 
             onClick={() => setMenuColapsado(!menuColapsado)}
             title={menuColapsado ? "Expandir Menu" : "Recolher Menu"}
           >
@@ -112,7 +119,6 @@ const Dashboard = () => {
         
         {/* RODAPÉ DO MENU (Perfil e Sair) */}
         <div className="d-flex flex-column gap-3 mb-2">
-          {/* Badge de Nível de Acesso */}
           {!menuColapsado && (
             <div className="p-2 rounded text-center border border-secondary border-opacity-25 fade-in" style={{ backgroundColor: '#141d29' }}>
               <small className="text-light d-block mb-1">Nível de Acesso</small>
@@ -146,7 +152,16 @@ const Dashboard = () => {
         {/* NAVBAR MOBILE */}
         <div className="d-md-none p-3 d-flex justify-content-between align-items-center shadow-sm" style={{ backgroundColor: '#1e2b3c' }}>
           <div className="d-flex align-items-center gap-2">
-            <img src="/logo-omnigestor.png" alt="Logo" style={{ height: '30px' }} />
+            
+            {/* LOGO FORMATADA (Mobile) */}
+            <div className="bg-white rounded d-flex justify-content-center align-items-center flex-shrink-0" style={{ width: '36px', height: '36px', padding: '2px' }}>
+              <img 
+                src="/logoOmniGestor.jpg" 
+                alt="Logo Omnigestor" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} 
+              />
+            </div>
+            
             <span className="fs-5 fw-bold text-info">OMNIGESTOR</span>
           </div>
           <button className="btn btn-outline-light btn-sm fw-bold" onClick={() => setMenuMobileAberto(true)}>☰ Menu</button>
