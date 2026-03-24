@@ -137,7 +137,7 @@ const UsuariosTab = ({ loggedUserId }) => {
       {showModal && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
-          <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1050 }} aria-hidden="true" onClick={fecharModal}>
+          <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1050 }} aria-hidden="true">
             <div className="modal-dialog modal-dialog-centered modal-lg" onClick={e => e.stopPropagation()}>
               <div className="modal-content rounded-4 border-0 shadow-lg">
                 

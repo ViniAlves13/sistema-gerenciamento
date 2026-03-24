@@ -56,34 +56,41 @@ const Dashboard = () => {
         className={`p-3 d-flex flex-column text-white shadow-lg ${menuMobileAberto ? 'position-fixed h-100 z-3' : 'd-none d-md-flex'}`} 
         style={{ width: larguraMenu, backgroundColor: '#1e2b3c', transition: 'width 0.3s ease' }}
       >
-        {/* CABEÇALHO DO MENU E LOGO */}
-        <div className={`d-flex ${menuColapsado ? 'justify-content-center' : 'justify-content-between'} align-items-center mb-4 mt-2 w-100`}>
-          <div className="d-flex align-items-center gap-2 overflow-hidden" style={{ whiteSpace: 'nowrap' }}>
-            
+        
+        {/* CABEÇALHO DO MENU E LOGO (Atrelada a logo e nome para retrair no PC) */}
+        <div 
+            className={`d-flex align-items-center gap-2 overflow-hidden mb-4 mt-2 w-100 cursor-pointer ${menuColapsado ? 'justify-content-center' : 'justify-content-between'}`}
+            style={{ whiteSpace: 'nowrap' }}
+            onClick={() => setMenuColapsado(!menuColapsado)}
+            title={menuColapsado ? "Expandir Menu" : "Recolher Menu"}
+        >
+          <div className="d-flex align-items-center gap-2">
             {/* LOGO FORMATADA (Moldura Branca) USANDO A VARIÁVEL logoOmni */}
             <div className="bg-white rounded-3 d-flex justify-content-center align-items-center shadow-sm flex-shrink-0" style={{ width: '42px', height: '42px', padding: '4px' }}>
               <img 
                 src={logoOmni} 
-                alt="Logo Omnigestor" 
+                alt="Logo OmniGestor" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} 
               />
             </div>
             
-            {/* Esconde o texto se estiver colapsado */}
-            {!menuColapsado && <span className="fs-4 fw-bold text-info fade-in" style={{ letterSpacing: '0.5px' }}>OMNIGESTOR</span>}
+            {/* Esconde o texto se estiver colapsado, e com novo estilo bonito */}
+            {!menuColapsado && (
+              <span className="fs-5 fw-semibold text-info fade-in" style={{ letterSpacing: '0.3px' }}>
+                OmniGestor
+              </span>
+            )}
           </div>
           
-          {/* Botão de Fechar no Mobile */}
-          <button className="btn btn-close btn-close-white d-md-none flex-shrink-0" onClick={() => setMenuMobileAberto(false)}></button>
-          
-          {/* Botão de Encolher no PC */}
+          {/* Botão de Fechar no Mobile (ms-auto para alinhar e stopPropagation para evitar conflito) */}
           <button 
-            className="btn btn-sm text-white border-0 d-none d-md-block opacity-75 hover-opacity-100 flex-shrink-0 ms-2" 
-            onClick={() => setMenuColapsado(!menuColapsado)}
-            title={menuColapsado ? "Expandir Menu" : "Recolher Menu"}
-          >
-            {menuColapsado ? '▶' : '◀'}
-          </button>
+            className="btn btn-close btn-close-white d-md-none flex-shrink-0 ms-auto" 
+            onClick={(e) => {
+                e.stopPropagation(); // Evita que o clique feche o menu E recolha ele
+                setMenuMobileAberto(false);
+            }}
+            >
+            </button>
         </div>
         
         {/* LINKS DO MENU */}
@@ -157,16 +164,16 @@ const Dashboard = () => {
         <div className="d-md-none p-3 d-flex justify-content-between align-items-center shadow-sm" style={{ backgroundColor: '#1e2b3c' }}>
           <div className="d-flex align-items-center gap-2">
             
-            {/* LOGO FORMATADA (Mobile) USANDO A VARIÁVEL logoOmni */}
+            {/* LOGO FORMATADA (Mobile) */}
             <div className="bg-white rounded d-flex justify-content-center align-items-center flex-shrink-0" style={{ width: '36px', height: '36px', padding: '2px' }}>
               <img 
                 src={logoOmni} 
-                alt="Logo Omnigestor" 
+                alt="Logo OmniGestor" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} 
               />
             </div>
             
-            <span className="fs-5 fw-bold text-info">OMNIGESTOR</span>
+            <span className="fs-5 fw-semibold text-info">OmniGestor</span>
           </div>
           <button className="btn btn-outline-light btn-sm fw-bold" onClick={() => setMenuMobileAberto(true)}>☰ Menu</button>
         </div>
@@ -197,7 +204,7 @@ const Dashboard = () => {
           {/* RODAPÉ DO SISTEMA */}
           <footer className="mt-5 pt-3 text-center" style={{ borderTop: '1px solid #d1d7dc' }}>
             <small className="text-muted fw-medium">
-              © 2026 Sistema de Gestão Empresarial - OMNIGESTOR.
+              © 2026 Sistema de Gestão Empresarial - OmniGestor.
             </small>
           </footer>
         </div>
