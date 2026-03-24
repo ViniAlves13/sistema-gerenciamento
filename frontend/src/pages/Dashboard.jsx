@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
+// Importação dos seus componentes
 import ProdutosTab from '../components/ProdutosTab';
 import ClientesTab from '../components/ClientesTab';
 import UsuariosTab from '../components/UsuariosTab';
 import PerfilTab from '../components/PerfilTab';
+
+// IMPORTAÇÃO CORRETA DA LOGO (Padrão React)
+import logoOmni from '../assets/logoOmniGestor.png';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('produtos');
@@ -56,10 +60,10 @@ const Dashboard = () => {
         <div className={`d-flex ${menuColapsado ? 'justify-content-center' : 'justify-content-between'} align-items-center mb-4 mt-2 w-100`}>
           <div className="d-flex align-items-center gap-2 overflow-hidden" style={{ whiteSpace: 'nowrap' }}>
             
-            {/* LOGO FORMATADA (Moldura Branca) */}
+            {/* LOGO FORMATADA (Moldura Branca) USANDO A VARIÁVEL logoOmni */}
             <div className="bg-white rounded-3 d-flex justify-content-center align-items-center shadow-sm flex-shrink-0" style={{ width: '42px', height: '42px', padding: '4px' }}>
               <img 
-                src="./assets/logoOmniGestor.png" 
+                src={logoOmni} 
                 alt="Logo Omnigestor" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} 
               />
@@ -153,10 +157,10 @@ const Dashboard = () => {
         <div className="d-md-none p-3 d-flex justify-content-between align-items-center shadow-sm" style={{ backgroundColor: '#1e2b3c' }}>
           <div className="d-flex align-items-center gap-2">
             
-            {/* LOGO FORMATADA (Mobile) */}
+            {/* LOGO FORMATADA (Mobile) USANDO A VARIÁVEL logoOmni */}
             <div className="bg-white rounded d-flex justify-content-center align-items-center flex-shrink-0" style={{ width: '36px', height: '36px', padding: '2px' }}>
               <img 
-                src="/logoOmniGestor.jpg" 
+                src={logoOmni} 
                 alt="Logo Omnigestor" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} 
               />

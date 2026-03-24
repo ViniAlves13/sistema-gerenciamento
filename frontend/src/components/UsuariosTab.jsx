@@ -88,7 +88,7 @@ const UsuariosTab = ({ loggedUserId }) => {
           </span>
         </div>
         <button onClick={handleAddClick} className="btn btn-lg shadow text-white fw-bold px-4" style={{ backgroundColor: '#6f42c1' }}>
-        Novo Usuário
+        + Novo Usuário
         </button>
       </div>
 

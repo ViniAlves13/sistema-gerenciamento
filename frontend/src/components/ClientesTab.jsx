@@ -299,7 +299,7 @@ const ClientesTab = ({ userRole }) => {
         </div>
         {(userRole === 'super_user' || userRole === 'adm') && (
           <button onClick={handleAddClick} className="btn btn-lg shadow text-white fw-bold px-4 btn-success">
-            Novo Cliente
+          + Novo Cliente
           </button>
         )}
       </div>
