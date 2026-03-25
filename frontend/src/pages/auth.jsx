@@ -41,8 +41,6 @@ const Auth = () => {
     }
   };
 
-  // === O SEGREDO DO BACKGROUND ESTÁ AQUI ===
-  // Usamos um linear-gradient escuro por cima da imagem para dar contraste
   const backgroundStyle = {
     backgroundImage: `linear-gradient(rgba(34, 40, 49, 0.75), rgba(34, 40, 49, 0.75)), url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop')`,
     backgroundSize: 'cover',
@@ -53,26 +51,24 @@ const Auth = () => {
   };
 
   return (
-    // Trocamos o "bg-light" pelo nosso estilo de imagem
-    <div style={backgroundStyle} className="d-flex align-items-center justify-content-center">
+    <div style={backgroundStyle} className="d-flex align-items-center justify-content-center px-3 px-md-0">
       <div className="container">
         <div className="row justify-content-center">
-          <div className="col-12 col-md-8 col-lg-5">
+          <div className="col-12 col-sm-10 col-md-8 col-lg-5">
             
-            {/* Adicionei um leve arredondamento extra (rounded-4) e uma sombra maior (shadow) para o card flutuar na imagem */}
-            <div className="card shadow border-0 rounded-4 mt-5 overflow-hidden">
+            <div className="card shadow border-0 rounded-4 mt-4 overflow-hidden">
               <div className="card-header bg-dark text-white text-center py-4 border-0">
-                <h3 className="fw-bold my-2">
+                <h3 className="fw-bold my-2 text-truncate">
                   {isLogin ? 'Acesso Restrito' : 'Nova Conta'}
                 </h3>
-                <p className="mb-0 text-white-50" style={{ fontSize: '14px' }}>
+                <p className="mb-0 text-white-50 small">
                   {isLogin ? 'Sistema de Gerenciamento Integrado' : 'Preencha os dados para solicitar acesso'}
                 </p>
               </div>
               
-              <div className="card-body p-5">
+              <div className="card-body p-4 p-md-5">
                 {erro && (
-                  <div className="alert alert-danger" role="alert">
+                  <div className="alert alert-danger fw-medium" role="alert">
                     {erro}
                   </div>
                 )}
@@ -120,7 +116,7 @@ const Auth = () => {
                   </div>
 
                   <div className="d-grid gap-2">
-                    <button type="submit" className="btn btn-primary btn-lg fw-bold">
+                    <button type="submit" className="btn btn-primary btn-lg fw-bold text-truncate">
                       {isLogin ? 'Entrar no Sistema' : 'Finalizar Cadastro'}
                     </button>
                   </div>
@@ -130,20 +126,20 @@ const Auth = () => {
               <div className="card-footer text-center py-3 bg-light border-0">
                 <div className="small">
                   {isLogin ? (
-                    <span className="text-muted">
+                    <span className="text-muted d-block d-sm-inline">
                       Ainda não tem acesso?{' '}
                       <button 
-                        className="btn btn-link p-0 text-decoration-none fw-bold" 
+                        className="btn btn-link p-0 text-decoration-none fw-bold ms-1" 
                         onClick={() => { setIsLogin(false); setErro(''); }}
                       >
                         Cadastre-se aqui
                       </button>
                     </span>
                   ) : (
-                    <span className="text-muted">
+                    <span className="text-muted d-block d-sm-inline">
                       Já possui uma conta?{' '}
                       <button 
-                        className="btn btn-link p-0 text-decoration-none fw-bold" 
+                        className="btn btn-link p-0 text-decoration-none fw-bold ms-1" 
                         onClick={() => { setIsLogin(true); setErro(''); }}
                       >
                         Faça Login
