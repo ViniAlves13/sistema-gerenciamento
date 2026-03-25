@@ -3,16 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 // Importação dos seus componentes
+import ResumoTab from '../components/ResumoTab'; // NOSSA NOVA ABA AQUI
 import ProdutosTab from '../components/ProdutosTab';
 import ClientesTab from '../components/ClientesTab';
 import UsuariosTab from '../components/UsuariosTab';
 import PerfilTab from '../components/PerfilTab';
 
-// IMPORTAÇÃO CORRETA DA LOGO (Padrão React)
+// IMPORTAÇÃO CORRETA DA LOGO
 import logoOmni from '../assets/logoOmniGestor.png';
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('produtos');
+  // Alterado de 'produtos' para 'resumo' para ser a primeira página!
+  const [activeTab, setActiveTab] = useState('resumo'); 
   const [userRole, setUserRole] = useState('');
   const [loggedUserId, setLoggedUserId] = useState('');
   
@@ -57,7 +59,7 @@ const Dashboard = () => {
         style={{ width: larguraMenu, backgroundColor: '#1e2b3c', transition: 'width 0.3s ease' }}
       >
         
-        {/* CABEÇALHO DO MENU E LOGO (Atrelada a logo e nome para retrair no PC) */}
+        {/* CABEÇALHO DO MENU E LOGO */}
         <div 
             className={`d-flex align-items-center gap-2 overflow-hidden mb-4 mt-2 w-100 cursor-pointer ${menuColapsado ? 'justify-content-center' : 'justify-content-between'}`}
             style={{ whiteSpace: 'nowrap' }}
@@ -65,36 +67,33 @@ const Dashboard = () => {
             title={menuColapsado ? "Expandir Menu" : "Recolher Menu"}
         >
           <div className="d-flex align-items-center gap-2">
-            {/* LOGO FORMATADA (Moldura Branca) USANDO A VARIÁVEL logoOmni */}
             <div className="bg-white rounded-3 d-flex justify-content-center align-items-center shadow-sm flex-shrink-0" style={{ width: '42px', height: '42px', padding: '4px' }}>
-              <img 
-                src={logoOmni} 
-                alt="Logo OmniGestor" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} 
-              />
+              <img src={logoOmni} alt="Logo OmniGestor" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} />
             </div>
-            
-            {/* Esconde o texto se estiver colapsado, e com novo estilo bonito */}
             {!menuColapsado && (
-              <span className="fs-5 fw-semibold text-info fade-in" style={{ letterSpacing: '0.3px' }}>
-                OmniGestor
-              </span>
+              <span className="fs-5 fw-semibold text-info fade-in" style={{ letterSpacing: '0.3px' }}>OmniGestor</span>
             )}
           </div>
-          
-          {/* Botão de Fechar no Mobile (ms-auto para alinhar e stopPropagation para evitar conflito) */}
           <button 
             className="btn btn-close btn-close-white d-md-none flex-shrink-0 ms-auto" 
-            onClick={(e) => {
-                e.stopPropagation(); // Evita que o clique feche o menu E recolha ele
-                setMenuMobileAberto(false);
-            }}
-            >
-            </button>
+            onClick={(e) => { e.stopPropagation(); setMenuMobileAberto(false); }}
+          ></button>
         </div>
         
         {/* LINKS DO MENU */}
         <ul className="nav nav-pills flex-column mb-auto gap-2">
+          
+          {/* NOVO BOTÃO: VISÃO GERAL */}
+          <li className="nav-item">
+            <button 
+              className={`nav-link text-start w-100 py-2 fs-6 d-flex align-items-center gap-3 ${menuColapsado ? 'justify-content-center px-0' : ''} ${activeTab === 'resumo' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold hover-bg-light'}`} 
+              onClick={() => trocarAba('resumo')} title="Visão Geral"
+            >
+              <span className="fs-5">📊</span>
+              {!menuColapsado && <span className="fade-in">Visão Geral</span>}
+            </button>
+          </li>
+
           <li className="nav-item">
             <button 
               className={`nav-link text-start w-100 py-2 fs-6 d-flex align-items-center gap-3 ${menuColapsado ? 'justify-content-center px-0' : ''} ${activeTab === 'produtos' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold hover-bg-light'}`} 
@@ -104,6 +103,7 @@ const Dashboard = () => {
               {!menuColapsado && <span className="fade-in">Inventário e Produtos</span>}
             </button>
           </li>
+          
           <li className="nav-item">
             <button 
               className={`nav-link text-start w-100 py-2 fs-6 d-flex align-items-center gap-3 ${menuColapsado ? 'justify-content-center px-0' : ''} ${activeTab === 'clientes' ? 'bg-primary text-white fw-bold shadow-sm' : 'text-white fw-semibold hover-bg-light'}`} 
@@ -113,6 +113,7 @@ const Dashboard = () => {
               {!menuColapsado && <span className="fade-in">Carteira de Clientes</span>}
             </button>
           </li>
+          
           {userRole === 'super_user' && (
             <li className="nav-item">
               <button 
@@ -163,16 +164,9 @@ const Dashboard = () => {
         {/* NAVBAR MOBILE */}
         <div className="d-md-none p-3 d-flex justify-content-between align-items-center shadow-sm" style={{ backgroundColor: '#1e2b3c' }}>
           <div className="d-flex align-items-center gap-2">
-            
-            {/* LOGO FORMATADA (Mobile) */}
             <div className="bg-white rounded d-flex justify-content-center align-items-center flex-shrink-0" style={{ width: '36px', height: '36px', padding: '2px' }}>
-              <img 
-                src={logoOmni} 
-                alt="Logo OmniGestor" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} 
-              />
+              <img src={logoOmni} alt="Logo OmniGestor" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%', borderRadius: '4px' }} />
             </div>
-            
             <span className="fs-5 fw-semibold text-info">OmniGestor</span>
           </div>
           <button className="btn btn-outline-light btn-sm fw-bold" onClick={() => setMenuMobileAberto(true)}>☰ Menu</button>
@@ -195,6 +189,9 @@ const Dashboard = () => {
         {/* CONTEÚDO DAS ABAS */}
         <div className="p-4 overflow-auto w-100 h-100 d-flex flex-column">
           <div className="container-fluid p-0 flex-grow-1" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            
+            {/* RENDERIZAÇÃO DA NOSVA ABA */}
+            {activeTab === 'resumo' && <ResumoTab />}
             {activeTab === 'produtos' && <ProdutosTab userRole={userRole} />}
             {activeTab === 'clientes' && <ClientesTab userRole={userRole} />}
             {activeTab === 'usuarios' && userRole === 'super_user' && <UsuariosTab loggedUserId={loggedUserId} />}
