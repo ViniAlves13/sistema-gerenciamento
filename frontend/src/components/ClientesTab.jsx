@@ -357,7 +357,7 @@ const ClientesTab = ({ userRole }) => {
                               Editar
                               </button>
                               <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-1 w-100 fw-medium shadow-sm rounded-3">
-                              Excluir
+                              X
                               </button>
                             </div>
                           </td>
@@ -413,7 +413,7 @@ const ClientesTab = ({ userRole }) => {
                           Editar
                           </button>
                           <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-2 w-100 fw-bold shadow-sm rounded-3">
-                          Excluir
+                          X
                           </button>
                         </div>
                       )}
