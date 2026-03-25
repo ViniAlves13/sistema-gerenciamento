@@ -262,7 +262,7 @@ const ClientesTab = ({ userRole }) => {
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <span className="fw-bold text-dark fs-6">{item.productName}</span>
                     <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center" style={{width: '35px', height: '35px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
-                      Excluir
+                    X
                     </button>
                   </div>
                   <div className="d-flex justify-content-between text-muted small mb-2 pb-2 border-bottom">
