@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 // Importação dos seus componentes
-import ResumoTab from '../components/ResumoTab'; // NOSSA NOVA ABA AQUI
+import ResumoTab from '../components/ResumoTab'; 
 import ProdutosTab from '../components/ProdutosTab';
 import ClientesTab from '../components/ClientesTab';
 import UsuariosTab from '../components/UsuariosTab';
