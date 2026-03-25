@@ -52,7 +52,7 @@ const ResumoTab = () => {
   return (
     <div className="fade-in">
       <div className="mb-4 border-bottom border-secondary-subtle pb-3">
-        <h3 className="fw-bold text-dark mb-1" style={{ color: '#1e2b3c' }}>📊 Visão Geral do Sistema</h3>
+        <h3 className="fw-bold text-dark mb-1" style={{ color: '#1e2b3c' }}>Visão Geral do Sistema</h3>
         <p className="text-muted mb-0">Resumo financeiro e operacional do seu negócio.</p>
       </div>
 
@@ -63,7 +63,7 @@ const ResumoTab = () => {
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <span className="text-secondary fw-bold">Total de Clientes</span>
-                <span className="fs-3">👥</span>
+                <span className="fs-3"></span>
               </div>
               <h2 className="fw-bold text-dark mb-0">{totalClientes}</h2>
             </div>
@@ -75,7 +75,7 @@ const ResumoTab = () => {
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <span className="text-secondary fw-bold">Produtos Cadastrados</span>
-                <span className="fs-3">📦</span>
+                <span className="fs-3"></span>
               </div>
               <h2 className="fw-bold text-dark mb-0">{totalProdutos}</h2>
             </div>
@@ -87,7 +87,7 @@ const ResumoTab = () => {
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <span className="text-secondary fw-bold">Faturamento Total</span>
-                <span className="fs-3">💰</span>
+                <span className="fs-3"></span>
               </div>
               <h2 className="fw-bold text-success mb-0">R$ {faturamentoTotal.toFixed(2)}</h2>
             </div>
@@ -99,7 +99,7 @@ const ResumoTab = () => {
             <div className="card-body p-4">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <span className="text-secondary fw-bold">Valor em Estoque</span>
-                <span className="fs-3">🏦</span>
+                <span className="fs-3"></span>
               </div>
               <h2 className="fw-bold text-info mb-0">R$ {valorEmEstoque.toFixed(2)}</h2>
             </div>
@@ -113,7 +113,7 @@ const ResumoTab = () => {
         <div className="col-12 col-lg-6">
           <div className="card border-0 shadow-sm rounded-4 h-100">
             <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
-              <h5 className="fw-bold text-warning mb-0">⚠️ Alertas de Estoque</h5>
+              <h5 className="fw-bold text-warning mb-0">Alertas de Estoque</h5>
             </div>
             <div className="card-body p-4">
               {produtosEsgotados.length === 0 && produtosAlerta.length === 0 ? (
@@ -148,7 +148,7 @@ const ResumoTab = () => {
         <div className="col-12 col-lg-6">
           <div className="card border-0 shadow-sm rounded-4 h-100">
             <div className="card-header bg-white border-bottom-0 pt-4 pb-0">
-              <h5 className="fw-bold text-primary mb-0">🆕 Últimos Clientes Registrados</h5>
+              <h5 className="fw-bold text-primary mb-0">Últimos Clientes Registrados</h5>
             </div>
             <div className="card-body p-4">
               {clientes.length === 0 ? (
