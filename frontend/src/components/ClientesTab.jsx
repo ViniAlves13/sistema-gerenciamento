@@ -239,7 +239,7 @@ const ClientesTab = ({ userRole }) => {
                     <td className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</td>
                     <td className="text-center">
                       <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center mx-auto" style={{width: '40px', height: '40px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
-                      Excluir
+                      X
                       </button>
                     </td>
                   </tr>
@@ -357,7 +357,7 @@ const ClientesTab = ({ userRole }) => {
                               Editar
                               </button>
                               <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-1 w-100 fw-medium shadow-sm rounded-3">
-                              X
+                              Excluir
                               </button>
                             </div>
                           </td>
