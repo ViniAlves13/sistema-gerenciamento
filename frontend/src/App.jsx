@@ -1,15 +1,16 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Auth from './pages/auth';
 import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
     <BrowserRouter>
+      {/* O Toaster deve ficar aqui em cima para funcionar em todas as páginas */}
+      <Toaster position="top-right" reverseOrder={false} />
+      
       <Routes>
-        {/* Rota inicial de Login/Cadastro */}
         <Route path="/" element={<Auth />} /> 
-        
-        {/* Rota do Dashboard livre para teste */}
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
