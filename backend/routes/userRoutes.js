@@ -8,9 +8,10 @@ const rateLimit = require('express-rate-limit');
 
 // 2. Cria a regra de bloqueio (O Leão de Chácara)
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // Tempo de castigo: 15 minutos
-  max: 15, // Limite de 5 tentativas erradas por IP
-  message: { error: 'Muitas tentativas de login fracassadas. Por segurança, tente novamente em 15 minutos.' }
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 5, // Limite de 5 tentativas ERRADAS
+  message: { message: "Muitas tentativas de login fracassadas. Por segurança, tente novamente em 15 minutos." },
+  skipSuccessfulRequests: true // <--- ADICIONE ESTA LINHA
 });
 
 // ==========================================

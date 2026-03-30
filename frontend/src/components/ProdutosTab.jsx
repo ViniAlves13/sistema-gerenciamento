@@ -80,14 +80,14 @@ const ProdutosTab = ({ userRole }) => {
       {/* CABEÇALHO COM BOTÃO DE ADICIONAR */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 border-bottom border-secondary-subtle pb-3 gap-3">
         <div>
-          <h3 className="fw-bold text-dark mb-2" style={{ color: '#1e2b3c' }}>📦 Gestão de Produtos</h3>
+          <h3 className="fw-bold text-dark mb-2" style={{ color: '#1e2b3c' }}>Registro de Produtos</h3>
           <span className="badge bg-primary rounded-pill px-4 py-2 shadow-sm fs-6">
             {produtos.length} Cadastrados
           </span>
         </div>
         {(userRole === 'super_user' || userRole === 'adm') && (
           <button onClick={handleAddClick} className="btn btn-lg shadow text-white fw-bold px-4 btn-primary">
-            ➕ Novo Produto
+          + Novo Produto
           </button>
         )}
       </div>
@@ -126,10 +126,10 @@ const ProdutosTab = ({ userRole }) => {
                           <td className="px-4 py-3">
                             <div className="d-flex flex-column gap-2 mx-auto" style={{ maxWidth: '110px' }}>
                               <button onClick={() => handleEditProdClick(produto)} className="btn btn-outline-primary py-1 w-100 fw-medium shadow-sm rounded-3">
-                                ✏️ Editar
+                              Editar
                               </button>
                               <button onClick={() => handleDeleteProduct(produto._id)} className="btn btn-outline-danger py-1 w-100 fw-medium shadow-sm rounded-3">
-                                🗑️ Excluir
+                              Excluir
                               </button>
                             </div>
                           </td>
@@ -165,10 +165,10 @@ const ProdutosTab = ({ userRole }) => {
                         {(userRole === 'super_user' || userRole === 'adm') && (
                           <div className="d-flex flex-column gap-2 border-top pt-4">
                             <button onClick={() => handleEditProdClick(produto)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
-                              ✏️ Editar
+                            Editar
                             </button>
                             <button onClick={() => handleDeleteProduct(produto._id)} className="btn btn-outline-danger py-2 w-100 fw-bold shadow-sm rounded-3">
-                              🗑️ Excluir
+                            Excluir
                             </button>
                           </div>
                         )}
@@ -188,13 +188,13 @@ const ProdutosTab = ({ userRole }) => {
       {showModal && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
-          <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1050 }} aria-hidden="true" onClick={fecharModal}>
+          <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1050 }} aria-hidden="true">
             <div className="modal-dialog modal-dialog-centered modal-lg" onClick={e => e.stopPropagation()}>
               <div className="modal-content rounded-4 border-0 shadow-lg">
                 
                 <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
                   <h4 className={`modal-title fw-bold ${editandoProdId ? 'text-warning text-dark' : 'text-primary'}`}>
-                    {editandoProdId ? '✏️ Editar Produto' : '➕ Cadastrar Novo Produto'}
+                    {editandoProdId ? 'Editar Produto' : 'Cadastrar Novo Produto'}
                   </h4>
                   <button type="button" className="btn-close shadow-none" onClick={fecharModal}></button>
                 </div>
@@ -220,10 +220,10 @@ const ProdutosTab = ({ userRole }) => {
                     
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top w-100">
                       <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
-                         ❌ Cancelar
+                        Cancelar
                       </button>
                       <button type="submit" className={`btn btn-lg fw-bold px-5 shadow-sm order-1 order-md-2 ${editandoProdId ? 'btn-warning text-dark' : 'btn-primary text-white'}`}>
-                        {editandoProdId ? '💾 Salvar Alterações' : '✅ Confirmar Cadastro'}
+                        {editandoProdId ? 'Salvar Alterações' : 'Confirmar Cadastro'}
                       </button>
                     </div>
                   </form>

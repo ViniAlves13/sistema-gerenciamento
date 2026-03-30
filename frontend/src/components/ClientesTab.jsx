@@ -234,8 +234,8 @@ const ClientesTab = ({ userRole }) => {
                     <td>R$ {item.price.toFixed(2)}</td>
                     <td className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</td>
                     <td className="text-center">
-                      <button type="button" className="btn btn-outline-danger p-2 rounded-3 d-flex align-items-center justify-content-center mx-auto" onClick={() => removerDoCarrinho(index)} title="Remover item">
-                       <Trash2 size={16} />
+                      <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center mx-auto" style={{width: '40px', height: '40px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
+                      X
                       </button>
                     </td>
                   </tr>
@@ -257,8 +257,8 @@ const ClientesTab = ({ userRole }) => {
                 <div className="card-body p-3">
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <span className="fw-bold text-dark fs-6">{item.productName}</span>
-                    <button type="button" className="btn btn-outline-danger p-2 rounded-3" onClick={() => removerDoCarrinho(index)} title="Remover item">
-                       <Trash2 size={16} />
+                    <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center" style={{width: '35px', height: '35px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
+                    X
                     </button>
                   </div>
                   <div className="d-flex justify-content-between text-muted small mb-2 pb-2 border-bottom">
@@ -345,12 +345,12 @@ const ClientesTab = ({ userRole }) => {
                         </td>
                         {(userRole === 'super_user' || userRole === 'adm') && (
                           <td className="px-4 py-3">
-                            <div className="d-flex justify-content-center gap-2">
-                              <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary p-2 shadow-sm rounded-3" title="Editar">
-                                <Pencil size={18} />
+                            <div className="d-flex flex-column gap-2 mx-auto" style={{ maxWidth: '110px' }}>
+                              <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-1 w-100 fw-medium shadow-sm rounded-3">
+                              Editar
                               </button>
-                              <button onClick={() => confirmDelete(cliente)} className="btn btn-outline-danger p-2 shadow-sm rounded-3" title="Excluir">
-                                <Trash2 size={18} />
+                              <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-1 w-100 fw-medium shadow-sm rounded-3">
+                              Excluir
                               </button>
                             </div>
                           </td>
@@ -400,12 +400,12 @@ const ClientesTab = ({ userRole }) => {
                       </div>
                       
                       {(userRole === 'super_user' || userRole === 'adm') && (
-                        <div className="d-flex justify-content-end gap-2 border-top pt-4 mt-2">
-                          <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary px-4 py-2 shadow-sm rounded-3" title="Editar">
-                            <Pencil size={20} />
+                        <div className="d-flex flex-column gap-2 border-top pt-4 mt-2">
+                          <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
+                          Editar
                           </button>
-                          <button onClick={() => confirmDelete(cliente)} className="btn btn-outline-danger px-4 py-2 shadow-sm rounded-3" title="Excluir">
-                            <Trash2 size={20} />
+                          <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-2 w-100 fw-bold shadow-sm rounded-3">
+                          Excluir
                           </button>
                         </div>
                       )}
@@ -435,7 +435,9 @@ const ClientesTab = ({ userRole }) => {
                   <form onSubmit={handleSubmit}>
                     {renderFormulario()}
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top w-100">
-                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>Cancelar</button>
+                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
+                        Cancelar
+                      </button>
                       <button type="submit" className={`btn btn-lg fw-bold px-5 shadow-sm order-1 order-md-2 ${editandoId ? 'btn-warning text-dark' : 'btn-success text-white'}`}>
                         {editandoId ? 'Salvar Alterações' : 'Salvar Novo Cliente'}
                       </button>

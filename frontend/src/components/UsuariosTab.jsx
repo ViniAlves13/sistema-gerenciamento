@@ -131,14 +131,14 @@ const UsuariosTab = ({ loggedUserId }) => {
                   
                   {/* BOTÕES COM ÍCONES */}
                   <div className="d-flex gap-2 border-top pt-4">
-                    <button onClick={() => handleEditClick(user)} className="btn btn-outline-primary py-2 w-50 fw-bold shadow-sm rounded-3 d-flex justify-content-center align-items-center gap-2">
-                      <Pencil size={18} /> Editar
+                    <button onClick={() => handleEditClick(user)} className="btn btn-outline-primary py-2 w-50 fw-bold shadow-sm rounded-3">
+                    Editar
                     </button>
                     <button 
                       onClick={() => confirmDelete(user)} 
                       className={`btn btn-outline-danger py-2 w-50 fw-bold shadow-sm rounded-3 d-flex justify-content-center align-items-center gap-2 ${user._id === loggedUserId ? 'disabled opacity-50' : ''}`}
                     >
-                      <UserX size={18} /> Revogar
+                    Revogar
                     </button>
                   </div>
 
@@ -185,7 +185,9 @@ const UsuariosTab = ({ loggedUserId }) => {
                       </select>
                     </div>
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-5 pt-4 border-top w-100">
-                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>Cancelar</button>
+                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
+                      Cancelar
+                      </button>
                       <button type="submit" className={`btn btn-lg shadow fw-bold px-5 order-1 order-md-2 ${editandoId ? 'btn-warning text-dark' : 'text-white'}`} style={{ backgroundColor: editandoId ? '' : '#6f42c1' }}>
                         {editandoId ? 'Atualizar Permissões' : 'Criar Credencial'}
                       </button>
