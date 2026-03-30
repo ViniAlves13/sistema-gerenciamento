@@ -20,7 +20,10 @@ const ClientesTab = ({ userRole }) => {
 
   const [showModal, setShowModal] = useState(false);
   
-  // ESTADOS DO NOVO MODAL DE EXCLUSÃO
+  // NOVO ESTADO PARA O BOTÃO DE LOADING
+  const [isLoading, setIsLoading] = useState(false);
+
+  // ESTADOS DO MODAL DE EXCLUSÃO
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [clienteToDelete, setClienteToDelete] = useState(null);
 
@@ -33,7 +36,9 @@ const ClientesTab = ({ userRole }) => {
       ]);
       setClientes(resClientes.data);
       setProdutos(resProdutos.data);
-    } catch (error) { console.error("Erro ao buscar dados", error); }
+    } catch (error) { 
+      toast.error('Erro ao buscar dados do servidor.', { duration: 2000 }); 
+    }
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -59,20 +64,22 @@ const ClientesTab = ({ userRole }) => {
         if (!response.data.erro) {
           setEndereco(`${response.data.logradouro}, Bairro ${response.data.bairro}, ${response.data.localidade} - ${response.data.uf}`);
         } else {
-          toast.error("CEP não encontrado!");
+          toast.error("CEP não encontrado!", { duration: 2000 });
         }
-      } catch (error) { toast.error("Falha ao consultar CEP na base de dados."); }
+      } catch (error) { 
+        toast.error("Erro na API ViaCEP", { duration: 2000 }); 
+      }
     }
   };
 
   const adicionarAoCarrinho = () => {
-    if (!produtoSelecionado) return toast.error('Selecione um produto.');
-    if (quantidadeCompra <= 0) return toast.error('A quantidade deve ser maior que zero.');
+    if (!produtoSelecionado) return toast.error('Selecione um produto.', { duration: 2000 });
+    if (quantidadeCompra <= 0) return toast.error('A quantidade deve ser maior que zero.', { duration: 2000 });
 
     const produtoDb = produtos.find(p => p._id === produtoSelecionado);
     
     if (quantidadeCompra > produtoDb.stock) {
-      return toast.error(`Estoque insuficiente! Temos apenas ${produtoDb.stock} unidades de ${produtoDb.name}.`);
+      return toast.error(`Estoque insuficiente! Temos apenas ${produtoDb.stock} unidades de ${produtoDb.name}.`, { duration: 3000 });
     }
 
     const novoItem = {
@@ -86,7 +93,7 @@ const ClientesTab = ({ userRole }) => {
     setCarrinho([...carrinho, novoItem]);
     setProdutoSelecionado(''); 
     setQuantidadeCompra(1);
-    toast.success('Adicionado ao carrinho!');
+    toast.success('Produto adicionado à compra!', { duration: 2000 });
   };
 
   const removerDoCarrinho = (indexParaRemover) => {
@@ -97,6 +104,8 @@ const ClientesTab = ({ userRole }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true); // INICIA O LOADING NO BOTÃO
+
     try {
       const payload = { 
         name: nome, 
@@ -110,15 +119,19 @@ const ClientesTab = ({ userRole }) => {
 
       if (editandoId) {
         await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/clients/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-        toast.success('Dados do cliente atualizados com sucesso!');
+        toast.success('Dados do cliente atualizados com sucesso!', { duration: 2000 });
       } else {
         await axios.post('https://gestaopro-api-ovgf.onrender.com/api/clients', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-        toast.success('Cliente e compra registrados com sucesso!');
+        toast.success('Cliente e compra registrados com sucesso!', { duration: 2000 });
       }
       
       fecharModal(); 
       fetchData();
-    } catch (error) { toast.error('Erro ao salvar cliente. Verifique os dados.'); }
+    } catch (error) { 
+      toast.error('Erro ao salvar cliente. Verifique os dados.', { duration: 2000 }); 
+    } finally {
+      setIsLoading(false); // PARA O LOADING
+    }
   };
 
   const handleEditClick = (cliente) => {
@@ -140,8 +153,10 @@ const ClientesTab = ({ userRole }) => {
   };
 
   const fecharModal = () => { 
-    limparForm();
-    setShowModal(false);
+    if(!isLoading) {
+      limparForm();
+      setShowModal(false);
+    }
   };
 
   // ABRE O MODAL DE EXCLUSÃO
@@ -154,10 +169,12 @@ const ClientesTab = ({ userRole }) => {
   const executeDelete = async () => {
     try {
       await axios.delete(`https://gestaopro-api-ovgf.onrender.com/api/clients/${clienteToDelete._id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-      toast.success('Registro do cliente removido!');
+      toast.success('Cliente foi deletado com sucesso!', { duration: 2000 });
       fetchData(); 
       setShowDeleteModal(false);
-    } catch (error) { toast.error('Erro ao deletar cliente.'); }
+    } catch (error) { 
+      toast.error('Erro ao deletar cliente.', { duration: 2000 }); 
+    }
   };
 
   const estoqueMaximoAtual = produtoSelecionado ? produtos.find(p => p._id === produtoSelecionado)?.stock : 1;
@@ -168,24 +185,24 @@ const ClientesTab = ({ userRole }) => {
       <div className="row g-4 mb-5">
         <div className="col-12 col-md-4">
           <label className="form-label fw-medium text-secondary">Nome Completo</label>
-          <input type="text" className="form-control form-control-lg bg-light" value={nome} onChange={e => setNome(e.target.value)} required />
+          <input type="text" className="form-control form-control-lg bg-light" value={nome} onChange={e => setNome(e.target.value)} required disabled={isLoading} />
         </div>
         <div className="col-12 col-md-4">
           <label className="form-label fw-medium text-secondary">E-mail</label>
-          <input type="email" className="form-control form-control-lg bg-light" value={email} onChange={e => setEmail(e.target.value)} required />
+          <input type="email" className="form-control form-control-lg bg-light" value={email} onChange={e => setEmail(e.target.value)} required disabled={isLoading} />
         </div>
         <div className="col-12 col-md-4">
           <label className="form-label fw-medium text-secondary">WhatsApp / Celular</label>
-          <input type="text" className="form-control form-control-lg bg-light" value={telefone} onChange={handleTelefoneChange} placeholder="(00) 00000-0000" />
+          <input type="text" className="form-control form-control-lg bg-light" value={telefone} onChange={handleTelefoneChange} placeholder="(00) 00000-0000" disabled={isLoading} />
         </div>
         
         <div className="col-12 col-md-3">
           <label className="form-label fw-medium text-secondary">CEP</label>
-          <input type="text" className="form-control form-control-lg bg-light border-primary" value={cep} onChange={handleCepChange} onBlur={buscarEnderecoPorCep} placeholder="00000-000" />
+          <input type="text" className="form-control form-control-lg bg-light border-primary" value={cep} onChange={handleCepChange} onBlur={buscarEnderecoPorCep} placeholder="00000-000" disabled={isLoading} />
         </div>
         <div className="col-12 col-md-9">
           <label className="form-label fw-medium text-secondary">Endereço Completo</label>
-          <input type="text" className="form-control form-control-lg bg-light" value={endereco} onChange={e => setEndereco(e.target.value)} placeholder="Preenchido automaticamente pelo CEP..." />
+          <input type="text" className="form-control form-control-lg bg-light" value={endereco} onChange={e => setEndereco(e.target.value)} placeholder="Preenchido automaticamente pelo CEP..." disabled={isLoading} />
         </div>
       </div>
 
@@ -193,7 +210,7 @@ const ClientesTab = ({ userRole }) => {
       <div className="row g-3 align-items-end p-4 rounded-4 bg-light border border-secondary-subtle mb-4 shadow-sm">
         <div className="col-12 col-md-6">
           <label className="form-label fw-bold text-dark">Selecione o Produto</label>
-          <select className="form-select form-select-lg border-secondary" value={produtoSelecionado} onChange={e => setProdutoSelecionado(e.target.value)}>
+          <select className="form-select form-select-lg border-secondary" value={produtoSelecionado} onChange={e => setProdutoSelecionado(e.target.value)} disabled={isLoading}>
             <option value="">-- Escolha um produto --</option>
             {produtos.map(p => (
               <option key={p._id} value={p._id} disabled={p.stock === 0}>
@@ -204,10 +221,10 @@ const ClientesTab = ({ userRole }) => {
         </div>
         <div className="col-6 col-md-3">
           <label className="form-label fw-bold text-dark">Quantidade</label>
-          <input type="number" min="1" max={estoqueMaximoAtual} className="form-control form-control-lg border-secondary text-center" value={quantidadeCompra} onChange={e => setQuantidadeCompra(e.target.value)} disabled={!produtoSelecionado} />
+          <input type="number" min="1" max={estoqueMaximoAtual} className="form-control form-control-lg border-secondary text-center" value={quantidadeCompra} onChange={e => setQuantidadeCompra(e.target.value)} disabled={!produtoSelecionado || isLoading} />
         </div>
         <div className="col-6 col-md-3">
-          <button type="button" className="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onClick={adicionarAoCarrinho} disabled={!produtoSelecionado}>
+          <button type="button" className="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onClick={adicionarAoCarrinho} disabled={!produtoSelecionado || isLoading}>
             Adicionar
           </button>
         </div>
@@ -234,8 +251,8 @@ const ClientesTab = ({ userRole }) => {
                     <td>R$ {item.price.toFixed(2)}</td>
                     <td className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</td>
                     <td className="text-center">
-                      <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center mx-auto" style={{width: '40px', height: '40px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
-                      X
+                      <button type="button" className="btn btn-outline-danger p-2 rounded-3 d-flex align-items-center justify-content-center mx-auto" onClick={() => removerDoCarrinho(index)} title="Remover item" disabled={isLoading}>
+                       <Trash2 size={16} />
                       </button>
                     </td>
                   </tr>
@@ -257,8 +274,8 @@ const ClientesTab = ({ userRole }) => {
                 <div className="card-body p-3">
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <span className="fw-bold text-dark fs-6">{item.productName}</span>
-                    <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center" style={{width: '35px', height: '35px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
-                    X
+                    <button type="button" className="btn btn-outline-danger p-2 rounded-3" onClick={() => removerDoCarrinho(index)} title="Remover item" disabled={isLoading}>
+                       <Trash2 size={16} />
                     </button>
                   </div>
                   <div className="d-flex justify-content-between text-muted small mb-2 pb-2 border-bottom">
@@ -345,12 +362,12 @@ const ClientesTab = ({ userRole }) => {
                         </td>
                         {(userRole === 'super_user' || userRole === 'adm') && (
                           <td className="px-4 py-3">
-                            <div className="d-flex flex-column gap-2 mx-auto" style={{ maxWidth: '110px' }}>
-                              <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-1 w-100 fw-medium shadow-sm rounded-3">
-                              Editar
+                            <div className="d-flex justify-content-center gap-2">
+                              <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary p-2 shadow-sm rounded-3" title="Editar">
+                                <Pencil size={18} />
                               </button>
-                              <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-1 w-100 fw-medium shadow-sm rounded-3">
-                              Excluir
+                              <button onClick={() => confirmDelete(cliente)} className="btn btn-outline-danger p-2 shadow-sm rounded-3" title="Excluir">
+                                <Trash2 size={18} />
                               </button>
                             </div>
                           </td>
@@ -400,12 +417,12 @@ const ClientesTab = ({ userRole }) => {
                       </div>
                       
                       {(userRole === 'super_user' || userRole === 'adm') && (
-                        <div className="d-flex flex-column gap-2 border-top pt-4 mt-2">
-                          <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
-                          Editar
+                        <div className="d-flex justify-content-end gap-2 border-top pt-4 mt-2">
+                          <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary px-4 py-2 shadow-sm rounded-3" title="Editar">
+                            <Pencil size={20} />
                           </button>
-                          <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-2 w-100 fw-bold shadow-sm rounded-3">
-                          Excluir
+                          <button onClick={() => confirmDelete(cliente)} className="btn btn-outline-danger px-4 py-2 shadow-sm rounded-3" title="Excluir">
+                            <Trash2 size={20} />
                           </button>
                         </div>
                       )}
@@ -418,7 +435,7 @@ const ClientesTab = ({ userRole }) => {
         </div>
       </div>
 
-      {/* MODAL DE CADASTRO E EDIÇÃO */}
+      {/* MODAL DE CADASTRO E EDIÇÃO COM LOADING NO BOTÃO */}
       {showModal && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
@@ -429,18 +446,30 @@ const ClientesTab = ({ userRole }) => {
                   <h4 className={`modal-title fw-bold ${editandoId ? 'text-warning text-dark' : 'text-success'}`}>
                     {editandoId ? 'Editar Cliente e Compras' : 'Novo Cliente e Compra'}
                   </h4>
-                  <button type="button" className="btn-close shadow-none" onClick={fecharModal}></button>
+                  <button type="button" className="btn-close shadow-none" onClick={fecharModal} disabled={isLoading}></button>
                 </div>
                 <div className="modal-body p-4 pt-2">
                   <form onSubmit={handleSubmit}>
                     {renderFormulario()}
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top w-100">
-                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
-                        Cancelar
+                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal} disabled={isLoading}>Cancelar</button>
+                      
+                      {/* BOTÃO COM SPINNER DE CARREGAMENTO */}
+                      <button 
+                        type="submit" 
+                        className={`btn btn-lg fw-bold px-5 shadow-sm order-1 order-md-2 d-flex justify-content-center align-items-center ${editandoId ? 'btn-warning text-dark' : 'btn-success text-white'}`}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Aguarde...
+                          </>
+                        ) : (
+                          editandoId ? 'Salvar Alterações' : 'Salvar Novo Cliente'
+                        )}
                       </button>
-                      <button type="submit" className={`btn btn-lg fw-bold px-5 shadow-sm order-1 order-md-2 ${editandoId ? 'btn-warning text-dark' : 'btn-success text-white'}`}>
-                        {editandoId ? 'Salvar Alterações' : 'Salvar Novo Cliente'}
-                      </button>
+
                     </div>
                   </form>
                 </div>
@@ -450,7 +479,7 @@ const ClientesTab = ({ userRole }) => {
         </>
       )}
 
-      {/* NOVO MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO (AÇÃO SEM VOLTA) */}
       {showDeleteModal && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1060 }}></div>
@@ -463,11 +492,13 @@ const ClientesTab = ({ userRole }) => {
                 </div>
                 <div className="modal-body p-4">
                   <p className="mb-0 fs-5 text-dark">Tem certeza que deseja apagar o registro de <strong>{clienteToDelete?.name}</strong>?</p>
-                  <p className="text-muted small mt-2">Esta ação apagará o histórico de compras deste cliente e não poderá ser desfeita.</p>
+                  <div className="alert alert-warning mt-3 mb-0 border-0 shadow-sm" role="alert">
+                    <strong>Ação sem volta:</strong> Esta ação apagará o histórico de compras deste cliente e não poderá ser desfeita.
+                  </div>
                 </div>
                 <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
                   <button type="button" className="btn btn-light fw-medium px-4" onClick={() => setShowDeleteModal(false)}>Cancelar</button>
-                  <button type="button" className="btn btn-danger fw-bold px-4" onClick={executeDelete}>Sim, Excluir</button>
+                  <button type="button" className="btn btn-danger fw-bold px-4" onClick={executeDelete}>Sim, Deletar</button>
                 </div>
               </div>
             </div>
