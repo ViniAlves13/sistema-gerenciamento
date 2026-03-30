@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
+import { Pencil, Trash2 } from 'lucide-react';
 
 const ClientesTab = ({ userRole }) => {
   const [clientes, setClientes] = useState([]);
   const [produtos, setProdutos] = useState([]); 
   
-  // Estados do formulário de Cliente
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -13,15 +14,16 @@ const ClientesTab = ({ userRole }) => {
   const [endereco, setEndereco] = useState('');
   const [editandoId, setEditandoId] = useState(null);
 
-  // Estados do Carrinho de Compras
   const [produtoSelecionado, setProdutoSelecionado] = useState('');
   const [quantidadeCompra, setQuantidadeCompra] = useState(1);
   const [carrinho, setCarrinho] = useState([]);
 
-  // Estado para controlar a abertura do Modal
   const [showModal, setShowModal] = useState(false);
+  
+  // ESTADOS DO NOVO MODAL DE EXCLUSÃO
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [clienteToDelete, setClienteToDelete] = useState(null);
 
-  // Busca Clientes e Produtos ao carregar a página
   const fetchData = async () => {
     try {
       const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
@@ -36,10 +38,6 @@ const ClientesTab = ({ userRole }) => {
 
   useEffect(() => { fetchData(); }, []);
 
-  // ==========================================
-  // REGRAS DE NEGÓCIO: MÁSCARAS E APIs
-  // ==========================================
-  
   const handleTelefoneChange = (e) => {
     let value = e.target.value.replace(/\D/g, ''); 
     value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
@@ -61,24 +59,20 @@ const ClientesTab = ({ userRole }) => {
         if (!response.data.erro) {
           setEndereco(`${response.data.logradouro}, Bairro ${response.data.bairro}, ${response.data.localidade} - ${response.data.uf}`);
         } else {
-          alert("CEP não encontrado!");
+          toast.error("CEP não encontrado!");
         }
-      } catch (error) { console.error("Erro na API ViaCEP"); }
+      } catch (error) { toast.error("Falha ao consultar CEP na base de dados."); }
     }
   };
 
-  // ==========================================
-  // REGRAS DE NEGÓCIO: CARRINHO DE COMPRAS
-  // ==========================================
-
   const adicionarAoCarrinho = () => {
-    if (!produtoSelecionado) return alert('Selecione um produto.');
-    if (quantidadeCompra <= 0) return alert('A quantidade deve ser maior que zero.');
+    if (!produtoSelecionado) return toast.error('Selecione um produto.');
+    if (quantidadeCompra <= 0) return toast.error('A quantidade deve ser maior que zero.');
 
     const produtoDb = produtos.find(p => p._id === produtoSelecionado);
     
     if (quantidadeCompra > produtoDb.stock) {
-      return alert(`Estoque insuficiente! Temos apenas ${produtoDb.stock} unidades de ${produtoDb.name}.`);
+      return toast.error(`Estoque insuficiente! Temos apenas ${produtoDb.stock} unidades de ${produtoDb.name}.`);
     }
 
     const novoItem = {
@@ -92,6 +86,7 @@ const ClientesTab = ({ userRole }) => {
     setCarrinho([...carrinho, novoItem]);
     setProdutoSelecionado(''); 
     setQuantidadeCompra(1);
+    toast.success('Adicionado ao carrinho!');
   };
 
   const removerDoCarrinho = (indexParaRemover) => {
@@ -99,10 +94,6 @@ const ClientesTab = ({ userRole }) => {
   };
 
   const totalGasto = carrinho.reduce((acc, item) => acc + item.subtotal, 0);
-
-  // ==========================================
-  // SALVAR NO BANCO E MODAL
-  // ==========================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -119,15 +110,15 @@ const ClientesTab = ({ userRole }) => {
 
       if (editandoId) {
         await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/clients/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-        alert('Dados do cliente atualizados com sucesso!');
+        toast.success('Dados do cliente atualizados com sucesso!');
       } else {
         await axios.post('https://gestaopro-api-ovgf.onrender.com/api/clients', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-        alert('Cliente e compra registrados com sucesso!');
+        toast.success('Cliente e compra registrados com sucesso!');
       }
       
       fecharModal(); 
       fetchData();
-    } catch (error) { alert('Erro ao salvar cliente.'); }
+    } catch (error) { toast.error('Erro ao salvar cliente. Verifique os dados.'); }
   };
 
   const handleEditClick = (cliente) => {
@@ -153,19 +144,24 @@ const ClientesTab = ({ userRole }) => {
     setShowModal(false);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Tem certeza que deseja excluir este cliente da base de dados?')) return;
+  // ABRE O MODAL DE EXCLUSÃO
+  const confirmDelete = (cliente) => {
+    setClienteToDelete(cliente);
+    setShowDeleteModal(true);
+  };
+
+  // EXECUTA A EXCLUSÃO
+  const executeDelete = async () => {
     try {
-      await axios.delete(`https://gestaopro-api-ovgf.onrender.com/api/clients/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      await axios.delete(`https://gestaopro-api-ovgf.onrender.com/api/clients/${clienteToDelete._id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      toast.success('Registro do cliente removido!');
       fetchData(); 
-    } catch (error) { alert('Erro ao deletar.'); }
+      setShowDeleteModal(false);
+    } catch (error) { toast.error('Erro ao deletar cliente.'); }
   };
 
   const estoqueMaximoAtual = produtoSelecionado ? produtos.find(p => p._id === produtoSelecionado)?.stock : 1;
 
-  // ==========================================
-  // RENDERIZAÇÃO DO FORMULÁRIO (Usado no Modal)
-  // ==========================================
   const renderFormulario = () => (
     <>
       <h5 className="fw-bold text-secondary mb-4 mt-2 border-bottom pb-2">1. Dados Pessoais</h5>
@@ -201,7 +197,7 @@ const ClientesTab = ({ userRole }) => {
             <option value="">-- Escolha um produto --</option>
             {produtos.map(p => (
               <option key={p._id} value={p._id} disabled={p.stock === 0}>
-                {p.name} (R$ {p.price}) - Estoque: {p.stock} {p.stock === 0 && '❌ Esgotado'}
+                {p.name} (R$ {p.price}) - Estoque: {p.stock} {p.stock === 0 && ' Esgotado!'}
               </option>
             ))}
           </select>
@@ -212,7 +208,7 @@ const ClientesTab = ({ userRole }) => {
         </div>
         <div className="col-6 col-md-3">
           <button type="button" className="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onClick={adicionarAoCarrinho} disabled={!produtoSelecionado}>
-            ➕ Adicionar
+            Adicionar
           </button>
         </div>
       </div>
@@ -238,8 +234,8 @@ const ClientesTab = ({ userRole }) => {
                     <td>R$ {item.price.toFixed(2)}</td>
                     <td className="fw-bold text-success fs-5">R$ {item.subtotal.toFixed(2)}</td>
                     <td className="text-center">
-                      <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center mx-auto" style={{width: '40px', height: '40px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
-                        🗑️
+                      <button type="button" className="btn btn-outline-danger p-2 rounded-3 d-flex align-items-center justify-content-center mx-auto" onClick={() => removerDoCarrinho(index)} title="Remover item">
+                       <Trash2 size={16} />
                       </button>
                     </td>
                   </tr>
@@ -255,14 +251,14 @@ const ClientesTab = ({ userRole }) => {
           </div>
 
           <div className="d-block d-md-none mb-4">
-            <h6 className="fw-bold text-secondary mb-3">🛒 Resumo do Carrinho:</h6>
+            <h6 className="fw-bold text-secondary mb-3">Resumo do Carrinho:</h6>
             {carrinho.map((item, index) => (
               <div key={index} className="card border-secondary-subtle mb-3 shadow-sm rounded-4">
                 <div className="card-body p-3">
                   <div className="d-flex justify-content-between align-items-start mb-2">
                     <span className="fw-bold text-dark fs-6">{item.productName}</span>
-                    <button type="button" className="btn btn-outline-danger p-2 rounded-circle d-flex align-items-center justify-content-center" style={{width: '35px', height: '35px'}} onClick={() => removerDoCarrinho(index)} title="Remover item">
-                      🗑️
+                    <button type="button" className="btn btn-outline-danger p-2 rounded-3" onClick={() => removerDoCarrinho(index)} title="Remover item">
+                       <Trash2 size={16} />
                     </button>
                   </div>
                   <div className="d-flex justify-content-between text-muted small mb-2 pb-2 border-bottom">
@@ -289,22 +285,20 @@ const ClientesTab = ({ userRole }) => {
   return (
     <div className="fade-in">
       
-      {/* CABEÇALHO COM BOTÃO DE ADICIONAR */}
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 border-bottom border-secondary-subtle pb-3 gap-3">
         <div>
-          <h3 className="fw-bold text-dark mb-2" style={{ color: '#1e2b3c' }}>👥 Carteira de Clientes e Vendas</h3>
+          <h3 className="fw-bold text-dark mb-2" style={{ color: '#1e2b3c' }}>Registro de Clientes e Vendas</h3>
           <span className="badge bg-success rounded-pill px-4 py-2 shadow-sm fs-6">
             {clientes.length} Registrados
           </span>
         </div>
         {(userRole === 'super_user' || userRole === 'adm') && (
           <button onClick={handleAddClick} className="btn btn-lg shadow text-white fw-bold px-4 btn-success">
-            ➕ Novo Cliente
+          + Novo Cliente
           </button>
         )}
       </div>
 
-      {/* TABELA GERAL DE CLIENTES */}
       <div className="card bg-white border-0 shadow-sm rounded-4 overflow-hidden" style={{ borderTop: '5px solid #6c757d !important' }}>
         <div className="card-body p-0">
           
@@ -312,7 +306,7 @@ const ClientesTab = ({ userRole }) => {
             <div className="text-center py-5 text-muted fs-5">Nenhum cliente registrado.</div>
           ) : (
             <>
-              {/* --- VERSÃO 1: TABELA (Para PC e iPads em paisagem) --- */}
+              {/* TABELA PC */}
               <div className="table-responsive d-none d-md-block">
                 <table className="table table-hover align-middle mb-0">
                   <thead style={{ backgroundColor: '#f8f9fa' }}>
@@ -330,7 +324,6 @@ const ClientesTab = ({ userRole }) => {
                           <span className="fw-bold fs-6" style={{ color: '#2b3a4a' }}>{cliente.name}</span><br/>
                           <span className="text-muted">{cliente.email}</span>
                           
-                          {/* Mini-lista de compras do cliente no PC */}
                           {cliente.purchases && cliente.purchases.length > 0 && (
                             <div className="mt-2 p-2 bg-light rounded border border-secondary-subtle">
                               <span className="fw-bold text-secondary small d-block mb-1">Última Compra:</span>
@@ -352,12 +345,12 @@ const ClientesTab = ({ userRole }) => {
                         </td>
                         {(userRole === 'super_user' || userRole === 'adm') && (
                           <td className="px-4 py-3">
-                            <div className="d-flex flex-column gap-2 mx-auto" style={{ maxWidth: '110px' }}>
-                              <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-1 w-100 fw-medium shadow-sm rounded-3">
-                                ✏️ Editar
+                            <div className="d-flex justify-content-center gap-2">
+                              <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary p-2 shadow-sm rounded-3" title="Editar">
+                                <Pencil size={18} />
                               </button>
-                              <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-1 w-100 fw-medium shadow-sm rounded-3">
-                                🗑️ Excluir
+                              <button onClick={() => confirmDelete(cliente)} className="btn btn-outline-danger p-2 shadow-sm rounded-3" title="Excluir">
+                                <Trash2 size={18} />
                               </button>
                             </div>
                           </td>
@@ -368,7 +361,7 @@ const ClientesTab = ({ userRole }) => {
                 </table>
               </div>
 
-              {/* --- VERSÃO 2: CARTÕES (Para Celular e iPads em retrato estreito) --- */}
+              {/* CARTÕES MOBILE */}
               <div className="d-block d-md-none p-3 bg-light">
                 {clientes.map(cliente => (
                   <div key={cliente._id} className="card shadow-sm border-0 mb-4 rounded-4">
@@ -383,13 +376,12 @@ const ClientesTab = ({ userRole }) => {
                         <span className="text-dark small">{cliente.phone || '-'}</span>
                       </div>
                       
-                      {/* Mini-lista de compras do cliente no Mobile */}
                       {cliente.purchases && cliente.purchases.length > 0 && (
                         <div className="mt-3 p-3 bg-white rounded-3 border">
-                          <span className="text-secondary fw-bold small d-block mb-2">🛒 Resumo da Compra:</span>
+                          <span className="text-secondary fw-bold small d-block mb-2">Resumo da Compra:</span>
                           <ul className="list-unstyled mb-0 small">
                             {cliente.purchases.map((p, idx) => (
-                              <li key={idx} className="mb-1 border-bottom pb-1 last-child-no-border">
+                              <li key={idx} className="mb-1 border-bottom pb-1">
                                 <span className="fw-bold">{p.quantity}x</span> {p.productName} <br/>
                                 <span className="text-success fw-medium">R$ {Number(p.price).toFixed(2)} un.</span>
                               </li>
@@ -408,12 +400,12 @@ const ClientesTab = ({ userRole }) => {
                       </div>
                       
                       {(userRole === 'super_user' || userRole === 'adm') && (
-                        <div className="d-flex flex-column gap-2 border-top pt-4 mt-2">
-                          <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary py-2 w-100 fw-bold shadow-sm rounded-3">
-                            ✏️ Editar
+                        <div className="d-flex justify-content-end gap-2 border-top pt-4 mt-2">
+                          <button onClick={() => handleEditClick(cliente)} className="btn btn-outline-primary px-4 py-2 shadow-sm rounded-3" title="Editar">
+                            <Pencil size={20} />
                           </button>
-                          <button onClick={() => handleDelete(cliente._id)} className="btn btn-outline-danger py-2 w-100 fw-bold shadow-sm rounded-3">
-                            🗑️ Excluir
+                          <button onClick={() => confirmDelete(cliente)} className="btn btn-outline-danger px-4 py-2 shadow-sm rounded-3" title="Excluir">
+                            <Trash2 size={20} />
                           </button>
                         </div>
                       )}
@@ -426,40 +418,55 @@ const ClientesTab = ({ userRole }) => {
         </div>
       </div>
 
-      {/* ========================================= */}
-      {/* MODAL ÚNICO (CADASTRO E EDIÇÃO) */}
-      {/* ========================================= */}
+      {/* MODAL DE CADASTRO E EDIÇÃO */}
       {showModal && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
-          <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1050 }} aria-hidden="true" onClick={fecharModal}>
+          <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1050 }} aria-hidden="true">
             <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" onClick={e => e.stopPropagation()}>
               <div className="modal-content rounded-4 border-0 shadow-lg" style={{ maxHeight: '90vh' }}>
-                
                 <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
                   <h4 className={`modal-title fw-bold ${editandoId ? 'text-warning text-dark' : 'text-success'}`}>
-                    {editandoId ? '✏️ Editar Cliente e Compras' : '➕ Novo Cliente e Compra'}
+                    {editandoId ? 'Editar Cliente e Compras' : 'Novo Cliente e Compra'}
                   </h4>
                   <button type="button" className="btn-close shadow-none" onClick={fecharModal}></button>
                 </div>
-                
                 <div className="modal-body p-4 pt-2">
                   <form onSubmit={handleSubmit}>
-                    
                     {renderFormulario()}
-                    
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top w-100">
-                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
-                         ❌ Cancelar
-                      </button>
+                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>Cancelar</button>
                       <button type="submit" className={`btn btn-lg fw-bold px-5 shadow-sm order-1 order-md-2 ${editandoId ? 'btn-warning text-dark' : 'btn-success text-white'}`}>
-                        {editandoId ? '💾 Salvar Alterações' : '✅ Salvar Novo Cliente'}
+                        {editandoId ? 'Salvar Alterações' : 'Salvar Novo Cliente'}
                       </button>
                     </div>
-
                   </form>
                 </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
+      {/* NOVO MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
+      {showDeleteModal && (
+        <>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1060 }}></div>
+          <div className="modal fade show d-block" tabIndex="-1" style={{ zIndex: 1065 }} aria-hidden="true">
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content rounded-4 border-0 shadow-lg">
+                <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                  <h5 className="modal-title fw-bold text-danger">Confirmar Exclusão</h5>
+                  <button type="button" className="btn-close shadow-none" onClick={() => setShowDeleteModal(false)}></button>
+                </div>
+                <div className="modal-body p-4">
+                  <p className="mb-0 fs-5 text-dark">Tem certeza que deseja apagar o registro de <strong>{clienteToDelete?.name}</strong>?</p>
+                  <p className="text-muted small mt-2">Esta ação apagará o histórico de compras deste cliente e não poderá ser desfeita.</p>
+                </div>
+                <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
+                  <button type="button" className="btn btn-light fw-medium px-4" onClick={() => setShowDeleteModal(false)}>Cancelar</button>
+                  <button type="button" className="btn btn-danger fw-bold px-4" onClick={executeDelete}>Sim, Excluir</button>
+                </div>
               </div>
             </div>
           </div>
