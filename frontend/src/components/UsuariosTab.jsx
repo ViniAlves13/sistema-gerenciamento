@@ -13,7 +13,7 @@ const UsuariosTab = ({ loggedUserId }) => {
 
   const [showModal, setShowModal] = useState(false);
   
-  // ESTADOS DO NOVO MODAL DE EXCLUSÃO
+  // ESTADOS DO MODAL DE EXCLUSÃO
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
@@ -36,11 +36,11 @@ const UsuariosTab = ({ loggedUserId }) => {
 
       if (editandoId) {
         await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/users/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-        toast.success('Permissões atualizadas com sucesso!');
+        toast.success('Edição realizada com sucesso!'); // TOAST DE EDIÇÃO
       } else {
         if (!senha) return toast.error('A senha é obrigatória para novos usuários.');
         await axios.post('https://gestaopro-api-ovgf.onrender.com/api/users', payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-        toast.success('Novo acesso criado com sucesso!');
+        toast.success('Cadastro realizado com sucesso!'); // TOAST DE CADASTRO
       }
       fecharModal(); 
       fetchUsuarios();
@@ -66,7 +66,7 @@ const UsuariosTab = ({ loggedUserId }) => {
 
   const limparForm = () => { setNome(''); setEmail(''); setSenha(''); setRole('usuario_comum'); setEditandoId(null); };
 
-  // ABRE O MODAL DE EXCLUSÃO
+  // ABRE O MODAL DE EXCLUSÃO AO INVÉS DO WINDOW.CONFIRM
   const confirmDelete = (user) => {
     if (user._id === loggedUserId) {
         return toast.error('Operação bloqueada: Você não pode excluir sua própria conta.');
@@ -75,14 +75,14 @@ const UsuariosTab = ({ loggedUserId }) => {
     setShowDeleteModal(true);
   };
 
-  // EXECUTA A EXCLUSÃO
+  // EXECUTA A EXCLUSÃO QUANDO O USUÁRIO CONFIRMA NO MODAL
   const executeDelete = async () => {
     try {
       await axios.delete(`https://gestaopro-api-ovgf.onrender.com/api/users/${userToDelete._id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
-      toast.success('Acesso revogado com sucesso!');
+      toast.success('O usuário foi deletado!'); // TOAST DE EXCLUSÃO
       fetchUsuarios(); 
       setShowDeleteModal(false);
-    } catch (error) { toast.error('Erro ao deletar credencial.'); }
+    } catch (error) { toast.error('Erro ao deletar usuário.'); }
   };
 
   const getRoleBadge = (userRole) => {
@@ -129,16 +129,15 @@ const UsuariosTab = ({ loggedUserId }) => {
                     {getRoleBadge(user.role)}
                   </div>
                   
-                  {/* BOTÕES COM ÍCONES */}
                   <div className="d-flex gap-2 border-top pt-4">
-                    <button onClick={() => handleEditClick(user)} className="btn btn-outline-primary py-2 w-50 fw-bold shadow-sm rounded-3">
-                    Editar
+                    <button onClick={() => handleEditClick(user)} className="btn btn-outline-primary py-2 w-50 fw-bold shadow-sm rounded-3 d-flex justify-content-center align-items-center gap-2">
+                      <Pencil size={18} /> Editar
                     </button>
                     <button 
                       onClick={() => confirmDelete(user)} 
                       className={`btn btn-outline-danger py-2 w-50 fw-bold shadow-sm rounded-3 d-flex justify-content-center align-items-center gap-2 ${user._id === loggedUserId ? 'disabled opacity-50' : ''}`}
                     >
-                    Revogar
+                      <UserX size={18} /> Deletar
                     </button>
                   </div>
 
@@ -158,7 +157,7 @@ const UsuariosTab = ({ loggedUserId }) => {
               <div className="modal-content rounded-4 border-0 shadow-lg">
                 <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
                   <h4 className="modal-title fw-bold" style={{ color: '#6f42c1' }}>
-                    {editandoId ? 'Editar Acesso' : 'Conceder Novo Acesso'}
+                    {editandoId ? 'Editar Acesso' : 'Cadastrar Novo Acesso'}
                   </h4>
                   <button type="button" className="btn-close shadow-none" onClick={fecharModal}></button>
                 </div>
@@ -185,11 +184,9 @@ const UsuariosTab = ({ loggedUserId }) => {
                       </select>
                     </div>
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-5 pt-4 border-top w-100">
-                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>
-                      Cancelar
-                      </button>
+                      <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal}>Cancelar</button>
                       <button type="submit" className={`btn btn-lg shadow fw-bold px-5 order-1 order-md-2 ${editandoId ? 'btn-warning text-dark' : 'text-white'}`} style={{ backgroundColor: editandoId ? '' : '#6f42c1' }}>
-                        {editandoId ? 'Atualizar Permissões' : 'Criar Credencial'}
+                        {editandoId ? 'Salvar Edição' : 'Concluir Cadastro'}
                       </button>
                     </div>
                   </form>
@@ -200,7 +197,7 @@ const UsuariosTab = ({ loggedUserId }) => {
         </>
       )}
 
-      {/* NOVO MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
+      {/* MODAL DE AVISO DE EXCLUSÃO (AÇÃO SEM VOLTA) */}
       {showDeleteModal && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1060 }}></div>
@@ -208,16 +205,18 @@ const UsuariosTab = ({ loggedUserId }) => {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content rounded-4 border-0 shadow-lg">
                 <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
-                  <h5 className="modal-title fw-bold text-danger">Confirmar Revogação</h5>
+                  <h5 className="modal-title fw-bold text-danger">⚠️ Confirmar Exclusão</h5>
                   <button type="button" className="btn-close shadow-none" onClick={() => setShowDeleteModal(false)}></button>
                 </div>
                 <div className="modal-body p-4">
-                  <p className="mb-0 fs-5 text-dark">Tem certeza que deseja revogar o acesso de <strong>{userToDelete?.name}</strong>?</p>
-                  <p className="text-muted small mt-2">Esta pessoa perderá imediatamente o acesso ao sistema.</p>
+                  <p className="mb-0 fs-5 text-dark">Tem certeza que deseja deletar o usuário <strong>{userToDelete?.name}</strong>?</p>
+                  <div className="alert alert-warning mt-3 mb-0 border-0 shadow-sm" role="alert">
+                    <strong>Atenção:</strong> Esta é uma ação sem volta. O usuário perderá imediatamente o acesso ao sistema.
+                  </div>
                 </div>
                 <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
                   <button type="button" className="btn btn-light fw-medium px-4" onClick={() => setShowDeleteModal(false)}>Cancelar</button>
-                  <button type="button" className="btn btn-danger fw-bold px-4" onClick={executeDelete}>Sim, Revogar</button>
+                  <button type="button" className="btn btn-danger fw-bold px-4" onClick={executeDelete}>Sim, Deletar Usuário</button>
                 </div>
               </div>
             </div>

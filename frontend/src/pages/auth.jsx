@@ -2,16 +2,14 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Eye, EyeOff } from 'lucide-react'; // IMPORTAMOS OS ÍCONES DO OLHO
+import { Eye, EyeOff } from 'lucide-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  
   const [isLoading, setIsLoading] = useState(false); 
-  // NOVO ESTADO PARA VER A SENHA
   const [showPassword, setShowPassword] = useState(false); 
   
   const navigate = useNavigate();
@@ -38,7 +36,8 @@ const Auth = () => {
           role: 'usuario_comum' 
         });
         
-        toast.success('Conta criada com sucesso! Faça o login.');
+        // AQUI ESTÁ O SEU TOAST DE CADASTRO REALIZADO
+        toast.success('Cadastro realizado com sucesso! Faça o login.');
         setIsLogin(true); 
         setSenha(''); 
       }
@@ -110,7 +109,6 @@ const Auth = () => {
                     <label htmlFor="inputEmail">Endereço de E-mail</label>
                   </div>
 
-                  {/* CAMPO DE SENHA COM OLHINHO */}
                   <div className="position-relative mb-4">
                     <div className="form-floating">
                       <input 
@@ -122,12 +120,11 @@ const Auth = () => {
                         onChange={(e) => setSenha(e.target.value)}
                         required
                         disabled={isLoading}
-                        style={{ paddingRight: '50px' }} // Espaço extra para o ícone não sobrepor o texto
+                        style={{ paddingRight: '50px' }} 
                       />
                       <label htmlFor="inputSenha">Senha</label>
                     </div>
                     
-                    {/* BOTÃO DO OLHINHO POSICIONADO DE FORMA ABSOLUTA */}
                     <button 
                       type="button" 
                       className="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none text-secondary"
