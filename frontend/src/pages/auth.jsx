@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Eye, EyeOff } from 'lucide-react'; // IMPORTAMOS OS ÍCONES DO OLHO
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,14 +10,15 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   
-  // ESTADO DE LOADING ADICIONADO AQUI
   const [isLoading, setIsLoading] = useState(false); 
+  // NOVO ESTADO PARA VER A SENHA
+  const [showPassword, setShowPassword] = useState(false); 
   
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // INICIA A SINALIZAÇÃO DE CARREGAMENTO
+    setIsLoading(true); 
 
     try {
       if (isLogin) {
@@ -26,7 +28,7 @@ const Auth = () => {
         });
         
         localStorage.setItem('token', response.data.token);
-        toast.success('Acesso liberado!'); // TOAST DE SUCESSO
+        toast.success('Acesso liberado!'); 
         navigate('/dashboard');
       } else {
         await axios.post('https://gestaopro-api-ovgf.onrender.com/api/users/register', {
@@ -43,8 +45,12 @@ const Auth = () => {
     } catch (error) {
       toast.error(error.response?.data?.error || 'Credenciais inválidas. Tente novamente.');
     } finally {
-      setIsLoading(false); // DESLIGA O LOADING AO FINALIZAR
+      setIsLoading(false); 
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   const backgroundStyle = {
@@ -104,23 +110,42 @@ const Auth = () => {
                     <label htmlFor="inputEmail">Endereço de E-mail</label>
                   </div>
 
-                  <div className="form-floating mb-4">
-                    <input 
-                      type="password" 
-                      className="form-control" 
-                      id="inputSenha" 
-                      placeholder="Senha"
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                      required
+                  {/* CAMPO DE SENHA COM OLHINHO */}
+                  <div className="position-relative mb-4">
+                    <div className="form-floating">
+                      <input 
+                        type={showPassword ? "text" : "password"} 
+                        className="form-control" 
+                        id="inputSenha" 
+                        placeholder="Senha"
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                        required
+                        disabled={isLoading}
+                        style={{ paddingRight: '50px' }} // Espaço extra para o ícone não sobrepor o texto
+                      />
+                      <label htmlFor="inputSenha">Senha</label>
+                    </div>
+                    
+                    {/* BOTÃO DO OLHINHO POSICIONADO DE FORMA ABSOLUTA */}
+                    <button 
+                      type="button" 
+                      className="btn btn-link position-absolute top-50 end-0 translate-middle-y text-decoration-none text-secondary"
+                      onClick={togglePasswordVisibility}
                       disabled={isLoading}
-                    />
-                    <label htmlFor="inputSenha">Senha</label>
+                      style={{ zIndex: 5, padding: '0 15px' }}
+                      title={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
                   </div>
 
                   <div className="d-grid gap-2">
-                    <button type="submit" className="btn btn-primary btn-lg fw-bold text-truncate d-flex justify-content-center align-items-center" disabled={isLoading}>
-                      {/* SPINNER ANIMADO QUE SÓ APARECE DURANTE O LOADING */}
+                    <button 
+                      type="submit" 
+                      className={`btn btn-lg fw-bold text-truncate d-flex justify-content-center align-items-center ${isLoading ? 'btn-secondary' : 'btn-primary'}`} 
+                      disabled={isLoading}
+                    >
                       {isLoading ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
@@ -141,7 +166,7 @@ const Auth = () => {
                       Ainda não tem acesso?{' '}
                       <button 
                         className="btn btn-link p-0 text-decoration-none fw-bold ms-1" 
-                        onClick={() => { setIsLogin(false); }}
+                        onClick={() => { setIsLogin(false); setSenha(''); setShowPassword(false); }}
                         disabled={isLoading}
                       >
                         Cadastre-se aqui
@@ -152,7 +177,7 @@ const Auth = () => {
                       Já possui uma conta?{' '}
                       <button 
                         className="btn btn-link p-0 text-decoration-none fw-bold ms-1" 
-                        onClick={() => { setIsLogin(true); }}
+                        onClick={() => { setIsLogin(true); setSenha(''); setShowPassword(false); }}
                         disabled={isLoading}
                       >
                         Faça Login
