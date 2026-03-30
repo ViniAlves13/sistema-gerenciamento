@@ -14,16 +14,16 @@ const ClientesTab = ({ userRole }) => {
   const [endereco, setEndereco] = useState('');
   const [editandoId, setEditandoId] = useState(null);
 
+  // NOVO ESTADO: Guarda a "foto" dos dados originais para comparação
+  const [dadosOriginais, setDadosOriginais] = useState(null);
+
   const [produtoSelecionado, setProdutoSelecionado] = useState('');
   const [quantidadeCompra, setQuantidadeCompra] = useState(1);
   const [carrinho, setCarrinho] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
-  
-  // NOVO ESTADO PARA O BOTÃO DE LOADING
   const [isLoading, setIsLoading] = useState(false);
 
-  // ESTADOS DO MODAL DE EXCLUSÃO
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [clienteToDelete, setClienteToDelete] = useState(null);
 
@@ -104,19 +104,29 @@ const ClientesTab = ({ userRole }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // INICIA O LOADING NO BOTÃO
+    setIsLoading(true);
+
+    const payload = { 
+      name: nome, 
+      email, 
+      phone: telefone, 
+      cep,
+      address: endereco,
+      purchases: carrinho,
+      totalSpent: totalGasto
+    };
+
+    // INTERCEPTAÇÃO: Se for edição, compara o payload atual com os dados originais
+    if (editandoId && dadosOriginais) {
+      // Usamos JSON.stringify para comparar se todos os campos e o carrinho estão exatamente iguais
+      if (JSON.stringify(payload) === JSON.stringify(dadosOriginais)) {
+        setIsLoading(false);
+        fecharModal();
+        return toast.success('Nenhuma alteração foi feita.', { duration: 2000 });
+      }
+    }
 
     try {
-      const payload = { 
-        name: nome, 
-        email, 
-        phone: telefone, 
-        cep,
-        address: endereco,
-        purchases: carrinho,
-        totalSpent: totalGasto
-      };
-
       if (editandoId) {
         await axios.put(`https://gestaopro-api-ovgf.onrender.com/api/clients/${editandoId}`, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
         toast.success('Dados do cliente atualizados com sucesso!', { duration: 2000 });
@@ -125,20 +135,36 @@ const ClientesTab = ({ userRole }) => {
         toast.success('Cliente e compra registrados com sucesso!', { duration: 2000 });
       }
       
+      setIsLoading(false);
       fecharModal(); 
       fetchData();
     } catch (error) { 
-      toast.error('Erro ao salvar cliente. Verifique os dados.', { duration: 2000 }); 
-    } finally {
-      setIsLoading(false); // PARA O LOADING
-    }
+      setIsLoading(false);
+      // Aqui nós também dizemos para o toast mostrar a mensagem de erro que vem do backend, se houver
+      toast.error(error.response?.data?.error || 'Erro ao salvar cliente. Verifique os dados.', { duration: 3000 }); 
+    } 
   };
 
   const handleEditClick = (cliente) => {
-    setNome(cliente.name); setEmail(cliente.email);
-    setTelefone(cliente.phone || ''); setCep(cliente.cep || ''); setEndereco(cliente.address || ''); 
+    setNome(cliente.name); 
+    setEmail(cliente.email);
+    setTelefone(cliente.phone || ''); 
+    setCep(cliente.cep || ''); 
+    setEndereco(cliente.address || ''); 
     setCarrinho(cliente.purchases || []); 
     setEditandoId(cliente._id);
+
+    // Salva a exata estrutura dos dados originais para não precisar bater na API à toa
+    setDadosOriginais({
+      name: cliente.name,
+      email: cliente.email,
+      phone: cliente.phone || '',
+      cep: cliente.cep || '',
+      address: cliente.address || '',
+      purchases: cliente.purchases || [],
+      totalSpent: cliente.totalSpent || 0
+    });
+
     setShowModal(true); 
   };
 
@@ -149,7 +175,7 @@ const ClientesTab = ({ userRole }) => {
 
   const limparForm = () => {
     setNome(''); setEmail(''); setTelefone(''); setCep(''); setEndereco(''); 
-    setCarrinho([]); setEditandoId(null); 
+    setCarrinho([]); setEditandoId(null); setDadosOriginais(null);
   };
 
   const fecharModal = () => { 
@@ -159,13 +185,11 @@ const ClientesTab = ({ userRole }) => {
     }
   };
 
-  // ABRE O MODAL DE EXCLUSÃO
   const confirmDelete = (cliente) => {
     setClienteToDelete(cliente);
     setShowDeleteModal(true);
   };
 
-  // EXECUTA A EXCLUSÃO
   const executeDelete = async () => {
     try {
       await axios.delete(`https://gestaopro-api-ovgf.onrender.com/api/clients/${clienteToDelete._id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
@@ -454,7 +478,6 @@ const ClientesTab = ({ userRole }) => {
                     <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top w-100">
                       <button type="button" className="btn btn-lg btn-outline-secondary px-4 fw-medium order-2 order-md-1" onClick={fecharModal} disabled={isLoading}>Cancelar</button>
                       
-                      {/* BOTÃO COM SPINNER DE CARREGAMENTO */}
                       <button 
                         type="submit" 
                         className={`btn btn-lg fw-bold px-5 shadow-sm order-1 order-md-2 d-flex justify-content-center align-items-center ${editandoId ? 'btn-warning text-dark' : 'btn-success text-white'}`}
@@ -479,7 +502,7 @@ const ClientesTab = ({ userRole }) => {
         </>
       )}
 
-      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO (AÇÃO SEM VOLTA) */}
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
       {showDeleteModal && (
         <>
           <div className="modal-backdrop fade show" style={{ zIndex: 1060 }}></div>
